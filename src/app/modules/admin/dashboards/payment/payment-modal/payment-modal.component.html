@@ -1,0 +1,151 @@
+<p-dialog
+    [header]="title"
+    [(visible)]="isOpenPaymentModal"
+    [modal]="true"
+    [style]="{ width: '40vw' }"
+    [breakpoints]="{ '700px': '90vw' }"
+    (onHide)="onHide()"
+    [draggable]="false"
+>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+        <div class="col-span-2 flex flex-col content-center w-full h-15">
+            <label>Pagos pendientes</label>
+            <ng-select
+                [items]="pendingPayments"
+                bindLabel="label"
+                bindValue="id"
+                [multiple]="true"
+                [formControl]="currentPayments"
+                [placeholder]="'Selecciona un pago'"
+                [clearable]="false"
+            ></ng-select>
+        </div>
+        <div class="col-span-2 flex flex-col content-center w-full h-15">
+            <label>Métodos de pago</label>
+            <ng-select
+                [items]="paymentMethods"
+                bindLabel="name"
+                bindValue="id"
+                [formControl]="currentPaymentMethod"
+                [placeholder]="'Selecciona un método de pago'"
+                [clearable]="false"
+            ></ng-select>
+        </div>
+        <div class="col-span-2 flex flex-col content-center w-full h-15">
+            <mat-label>Se pagó</mat-label>
+            <mat-form-field>
+                <input
+                    matInput
+                    type="date"
+                    placeholder="Buscar por nombre"
+                    [formControl]="paidAt"
+                />
+            </mat-form-field>
+        </div>
+        @if(selectedPayments?.length === 1) {
+                <div
+                    class="col-span-2 inline-flex items-center justify-between w-full mt-0.5"
+                >
+
+                    <mat-checkbox [color]="'primary'" [formControl]="isPartial">
+                        Quiero abonar una parte
+                    </mat-checkbox>
+
+                    <mat-form-field
+                        class="{{ isPartial.value ? 'opacity-100' : 'opacity-0' }}"
+                    >
+                        <input
+                            inputmode="text"
+                            matInput
+                            placeholder="00.00"
+                            [formControl]="partialAmount"
+                        />
+                    </mat-form-field>
+                </div>
+        }
+        <div
+            class="{{
+                currentPayments.value?.length ? 'opacity-100' : 'opacity-0'
+            }} col-span-2 flex flex-col md:content-end w-full mt-2"
+        >
+            @if (!isPartial.value) {
+                <div class="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>MXN {{ subtotal }}</span>
+                </div>
+                @if (scholarship !== null) {
+                    <div class="flex justify-between">
+                        <span>Beca</span>
+                        <span
+                        >MXN
+                            {{
+                                scholarshipAmount
+                            }}</span
+                        >
+                    </div>
+                } @else {
+                <div class="flex justify-between">
+                    <span>Descuento</span>
+                    <span
+                    >MXN
+                        {{
+                            discount
+                        }}</span
+                    >
+                </div>
+                }
+                <div class="flex justify-between">
+                    <span>Total</span>
+                    <span
+                    >MXN
+                        {{
+                            total
+                        }}</span
+                    >
+                </div>
+            } @else {
+                <div class="flex justify-between">
+                    <span>Monto restante</span>
+                    <span>MXN {{ subtotal }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Monto a pagar</span>
+                    <span>MXN {{ partialAmount.value ?? "0.00" }}</span>
+                </div>
+            }
+        </div>
+        <div
+            class="col-span-2 flex flex-col items-center md:content-end w-full mt-5"
+        >
+            @if (folioTicket) {
+                <button
+                    class="fuse-mat-button-rounded w-50 mt-1"
+                    mat-flat-button
+                    [color]="'primary'"
+                    (click)="printTicket()"
+                    >
+                    <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:document'"
+                    ></mat-icon>
+                    <span class="ml-2">Imprimir ticket</span>
+                </button>
+            } @else {
+                <button
+                    class="fuse-mat-button-rounded w-50 mt-1"
+                    mat-flat-button
+                    [color]="'primary'"
+                    [disabled]="!selectedPayments?.length"
+                    (click)="savePayment()"
+                >
+                    <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:save'"
+                    ></mat-icon>
+                    <span class="ml-2">Guardar</span>
+                </button>
+            }
+
+        </div>
+    </div>
+</p-dialog>

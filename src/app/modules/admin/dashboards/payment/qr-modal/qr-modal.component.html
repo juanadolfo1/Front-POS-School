@@ -1,0 +1,61 @@
+<p-dialog
+    [header]="title"
+    [(visible)]="isOpenQrModal"
+    [modal]="true"
+    [style]="{ width: '40vw' }"
+    [breakpoints]="{ '700px': '90vw' }"
+    (onHide)="onHideQrModal()"
+    [draggable]="false"
+    [closable]="true"
+    >
+    <div
+        class="grid grid-cols-1 align-items-center justify-items-center gap-6 w-full"
+    >
+            <mat-icon
+                class="icon-size-20"
+                svgIcon="heroicons_solid:qrcode"></mat-icon>
+        <div class="flex flex-col w-60">
+            <mat-form-field>
+                <mat-label>ID único de alumno</mat-label>
+                <input
+                    #uuidForm
+                    matInput
+                    type="text"
+                    placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+                    [formControl]="uuidControl"
+                >
+            </mat-form-field>
+        </div>
+        @if (!isValidUuid) {
+            <p>Use el escaner para leer el código QR del alumno</p>
+        } @else {
+            <h3>Estudiante encontrado</h3>
+            <p>{{currentStudent.name}} {{currentStudent.first_lastname}} {{currentStudent.second_lastname}}</p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 align-items-center justify-items-center gap-3">
+                <button
+                    class="fuse-mat-button-rounded w-50 mt-1"
+                    mat-flat-button
+                    [color]="'primary'"
+                    (click)="openPaymentModal()"
+                >
+                    <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:document-add'"
+                    ></mat-icon>
+                    <span class="ml-2">Pagar colegiatura</span>
+                </button>
+                <button
+                    class="fuse-mat-button-rounded w-50 mt-1"
+                    mat-flat-button
+                    [color]="'primary'"
+                >
+                    <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:document-add'"
+                    ></mat-icon>
+                    <span class="ml-2">Pagar servicio</span>
+                </button>
+            </div>
+        }
+    </div>
+</p-dialog>

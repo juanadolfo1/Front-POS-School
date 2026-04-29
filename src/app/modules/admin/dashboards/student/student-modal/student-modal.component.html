@@ -1,0 +1,106 @@
+<p-dialog
+    [header]="title"
+    [(visible)]="isOpenStudentModal"
+    [modal]="true"
+    [style]="{ width: '50vw' }"
+    [breakpoints]="{ '700px': '90vw' }"
+    (onHide)="onHide()"
+    [draggable]="false"
+>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+        <div class="col-span-2 flex flex-col content-center w-full h-15">
+            <mat-form-field>
+                <mat-label>Nombre</mat-label>
+                <input matInput [formControl]="name" placeholder="Nombre" />
+                @if (name.hasError('required')) {
+                <mat-error *ngIf="name.hasError('required')"
+                    >Campo requerido</mat-error
+                >
+                }
+            </mat-form-field>
+        </div>
+        <div class="flex flex-col content-center w-full h-15">
+            <mat-form-field>
+                <mat-label>Primer apellido</mat-label>
+                <input
+                    matInput
+                    [formControl]="firstLastName"
+                    placeholder="Primer apellido"
+                />
+                @if (firstLastName.hasError('required')) {
+                <mat-error *ngIf="firstLastName.hasError('required')"
+                    >Campo requerido</mat-error
+                >
+                }
+            </mat-form-field>
+        </div>
+        <div class="flex flex-col content-center w-full h-15">
+            <mat-form-field>
+                <mat-label>Segundo apellido</mat-label>
+                <input
+                    matInput
+                    [formControl]="secondLastName"
+                    placeholder="Segundo apellido"
+                />
+            </mat-form-field>
+        </div>
+        <div class="flex flex-col content-center w-full h-15">
+            <mat-form-field>
+                <mat-label>Correo electrónico</mat-label>
+                <input
+                    matInput
+                    [formControl]="email"
+                    placeholder="Correo electrónico"
+                />
+            </mat-form-field>
+        </div>
+
+        <div class="flex flex-col content-center w-full h-15">
+            <mat-form-field>
+                <mat-label>CURP</mat-label>
+                <input matInput [formControl]="curp" placeholder="Curp" />
+            </mat-form-field>
+        </div>
+
+        <div class="flex flex-col content-center w-full h-15">
+            <mat-form-field>
+                <mat-label>Fecha de nacimiento</mat-label>
+                <input
+                    matInput
+                    type="date"
+                    [formControl]="birthDay"
+                    placeholder="Fecha de nacimiento"
+                />
+            </mat-form-field>
+        </div>
+        <div class="flex flex-col items-center md:content-end w-full">
+            <div class="flex flex-col content-center w-full h-15">
+                <label>Género</label>
+                <ng-select
+                    [items]="genderOptions"
+                    bindLabel="label"
+                    bindValue="value"
+                    [formControl]="gender"
+                    [placeholder]="'Selecciona el género'"
+                    [clearable]="false"
+                ></ng-select>
+            </div>
+        </div>
+        <div
+            class="col-span-2 flex flex-col items-center md:content-end w-full mt-5"
+        >
+            <button
+                class="fuse-mat-button-rounded w-50 mt-1"
+                mat-flat-button
+                [color]="'primary'"
+                (click)="save()"
+            >
+                <mat-icon
+                    class="icon-size-5"
+                    [svgIcon]="'heroicons_solid:save'"
+                ></mat-icon>
+                <span class="ml-2">Guardar</span>
+            </button>
+        </div>
+    </div>
+</p-dialog>

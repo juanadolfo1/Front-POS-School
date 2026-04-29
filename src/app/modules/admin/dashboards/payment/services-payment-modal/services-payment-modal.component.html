@@ -1,0 +1,99 @@
+<p-dialog
+    [header]="title"
+    [(visible)]="isOpenServicesPaymentModal"
+    [modal]="true"
+    [style]="{ width: '40vw' }"
+    [breakpoints]="{ '700px': '90vw' }"
+    (onHide)="onHide()"
+    [draggable]="false"
+>
+    <div class="grid grid-cols-1 gap-6 w-full">
+        <div class="flex flex-col content-center w-full">
+            <label>Conceptos</label>
+            <ng-select
+                class="custom"
+                [items]="payConcepts"
+                bindLabel="label"
+                bindValue="id"
+                [multiple]="true"
+                [formControl]="currentPayConcepts"
+                [placeholder]="'Selecciona un concepto'"
+                [clearable]="false"
+            ></ng-select>
+        </div>
+        <div class="flex flex-col content-center w-full">
+            <label>Métodos de pago</label>
+            <ng-select
+                [items]="paymentMethods"
+                bindLabel="name"
+                bindValue="id"
+                [formControl]="currentPaymentMethod"
+                [placeholder]="'Selecciona un método de pago'"
+                [clearable]="false"
+            ></ng-select>
+        </div>
+
+        @for (selectedPayConcept of selectedPayConcepts; track selectedPayConcept.id) {
+            <div class="grid grid-cols-4 gap-5 content-center justify-around h-15">
+                <mat-form-field>
+                    <mat-label>Cantidad</mat-label>
+                    <input
+                        inputmode="number"
+                        matInput
+                        placeholder="0"
+                        [formControl]="selectedPayConcept.quantity"
+                    >
+                </mat-form-field>
+                <div class="col-span-2 flex flex-col content-center justify-center h-15">
+                    <label>Concepto</label>
+                    <p>{{ selectedPayConcept.payment.label }}</p>
+                </div>
+                <div class="flex flex-col content-center justify-center h-15">
+                    <label>Precio</label>
+                    <p>MXN {{ selectedPayConcept.quantity.value * selectedPayConcept.payment.amount }}</p>
+                </div>
+            </div>
+        }
+        @if (selectedPayConcepts.length) {
+            <div class="grid grid-cols-4 gap-5 content-center justify-around h-15">
+                <div class="col-start-4 flex flex-col content-center justify-center h-15">
+                    <label>Total</label>
+                    <p>{{ total }}</p>
+                </div>
+            </div>
+        }
+        <div
+            class="flex flex-col items-center md:content-end w-full mt-5"
+        >
+            @if (folioTicket) {
+                <button
+                    class="fuse-mat-button-rounded w-50 mt-1"
+                    mat-flat-button
+                    [color]="'primary'"
+                    (click)="printTicket()"
+                >
+                    <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:document'"
+                    ></mat-icon>
+                    <span class="ml-2">Imprimir ticket</span>
+                </button>
+            } @else {
+                <button
+                    class="fuse-mat-button-rounded w-50 mt-1"
+                    mat-flat-button
+                    [color]="'primary'"
+                    [disabled]="!currentPayConcepts.value.length"
+                    (click)="savePayment()"
+                >
+                    <mat-icon
+                        class="icon-size-5"
+                        [svgIcon]="'heroicons_solid:save'"
+                    ></mat-icon>
+                    <span class="ml-2">Guardar</span>
+                </button>
+            }
+
+        </div>
+    </div>
+</p-dialog>

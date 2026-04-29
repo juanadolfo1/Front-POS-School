@@ -1,0 +1,13 @@
+<p-dialog
+    [header]="title"
+    [(visible)]="isOpenModal"
+    [modal]="true"
+    [style]="{ width: '30vw' }"
+    [breakpoints]="{ '700px': '90vw' }"
+    [draggable]="false"
+    [closable]="true"
+    >
+    <div class="grid grid-cols-1 gap-6 w-full">
+        <iframe class=" w-full h-64" [src]="qrUrl"></iframe>
+    </div>
+</p-dialog>

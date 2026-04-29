@@ -1,0 +1,13 @@
+<p-dialog
+    [header]="title"
+    [(visible)]="isOpenTicketModal"
+    [modal]="true"
+    [style]="{ width: '40vw' }"
+    [breakpoints]="{ '700px': '90vw' }"
+    (onHide)="onHide()"
+    [draggable]="false"
+>
+    <div class="grid grid-cols-1 gap-6 w-full">
+    <iframe class="w-full h-128" [src]="ticketUrl"></iframe>
+    </div>
+</p-dialog>
