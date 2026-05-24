@@ -1,0 +1,136 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <div class="bg-card">
+        <div class="flex flex-col w-full max-w-screen-xl mx-auto px-6 sm:px-8 py-8">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">Catálogos</h1>
+
+            <!-- Tabs -->
+            <div class="flex gap-2 mb-6">
+                <button mat-flat-button [color]="activeTab === 'years' ? 'primary' : ''" (click)="activeTab = 'years'">Años Escolares</button>
+                <button mat-flat-button [color]="activeTab === 'levels' ? 'primary' : ''" (click)="activeTab = 'levels'">Niveles Académicos</button>
+                <button mat-flat-button [color]="activeTab === 'groups' ? 'primary' : ''" (click)="activeTab = 'groups'">Grupos</button>
+            </div>
+
+            @if (isLoading) {
+                <app-spinner></app-spinner>
+            } @else {
+                <!-- Años Escolares -->
+                @if (activeTab === 'years') {
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl border p-6">
+                            <h3 class="font-semibold mb-4">{{ yearForm.value.id ? 'Editar' : 'Nuevo' }} Año Escolar</h3>
+                            <form [formGroup]="yearForm" (ngSubmit)="saveYear()">
+                                <mat-form-field class="w-full">
+                                    <mat-label>Año</mat-label>
+                                    <input matInput formControlName="year" placeholder="2025-2026" />
+                                </mat-form-field>
+                                <button type="submit" mat-flat-button color="primary" class="w-full mt-2">Guardar</button>
+                            </form>
+                        </div>
+                        <div class="bg-white rounded-xl border p-6">
+                            <h3 class="font-semibold mb-4">Listado</h3>
+                            <div class="space-y-2">
+                                @for (item of scholarYears; track item.id) {
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <span>{{ item.year }}</span>
+                                        <div class="flex gap-1">
+                                            <button *hasOperation="'dashboards/catalogs:Editar'" mat-icon-button (click)="editYear(item)">
+                                                <mat-icon class="icon-size-4" svgIcon="feather:edit"></mat-icon>
+                                            </button>
+                                            <button *hasOperation="'dashboards/catalogs:Eliminar'" mat-icon-button (click)="deleteYear(item.id)">
+                                                <mat-icon class="icon-size-4" svgIcon="feather:trash"></mat-icon>
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Niveles Académicos -->
+                @if (activeTab === 'levels') {
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl border p-6">
+                            <h3 class="font-semibold mb-4">{{ levelForm.value.id ? 'Editar' : 'Nuevo' }} Nivel</h3>
+                            <form [formGroup]="levelForm" (ngSubmit)="saveLevel()">
+                                <mat-form-field class="w-full">
+                                    <mat-label>Nombre</mat-label>
+                                    <input matInput formControlName="label" placeholder="Primaria" />
+                                </mat-form-field>
+                                <button type="submit" mat-flat-button color="primary" class="w-full mt-2">Guardar</button>
+                            </form>
+                        </div>
+                        <div class="bg-white rounded-xl border p-6">
+                            <h3 class="font-semibold mb-4">Listado</h3>
+                            <div class="space-y-2">
+                                @for (item of academicLevels; track item.id) {
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <span>{{ item.label }}</span>
+                                        <div class="flex gap-1">
+                                            <button *hasOperation="'dashboards/catalogs:Editar'" mat-icon-button (click)="editLevel(item)">
+                                                <mat-icon class="icon-size-4" svgIcon="feather:edit"></mat-icon>
+                                            </button>
+                                            <button *hasOperation="'dashboards/catalogs:Eliminar'" mat-icon-button (click)="deleteLevel(item.id)">
+                                                <mat-icon class="icon-size-4" svgIcon="feather:trash"></mat-icon>
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Grupos -->
+                @if (activeTab === 'groups') {
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-xl border p-6">
+                            <h3 class="font-semibold mb-4">{{ groupForm.value.id ? 'Editar' : 'Nuevo' }} Grupo</h3>
+                            <form [formGroup]="groupForm" (ngSubmit)="saveGroup()">
+                                <mat-form-field class="w-full">
+                                    <mat-label>Nombre del grupo</mat-label>
+                                    <input matInput formControlName="label" placeholder="1-A" />
+                                </mat-form-field>
+                                <mat-form-field class="w-full">
+                                    <mat-label>Año Escolar</mat-label>
+                                    <mat-select formControlName="scholar_year_id">
+                                        @for (y of scholarYears; track y.id) {
+                                            <mat-option [value]="y.id">{{ y.year }}</mat-option>
+                                        }
+                                    </mat-select>
+                                </mat-form-field>
+                                <mat-form-field class="w-full">
+                                    <mat-label>Nivel Académico</mat-label>
+                                    <mat-select formControlName="academic_level_id">
+                                        @for (l of academicLevels; track l.id) {
+                                            <mat-option [value]="l.id">{{ l.label }}</mat-option>
+                                        }
+                                    </mat-select>
+                                </mat-form-field>
+                                <button type="submit" mat-flat-button color="primary" class="w-full mt-2">Guardar</button>
+                            </form>
+                        </div>
+                        <div class="bg-white rounded-xl border p-6">
+                            <h3 class="font-semibold mb-4">Listado</h3>
+                            <div class="space-y-2">
+                                @for (item of groups; track item.id) {
+                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                        <span>{{ item.label }}</span>
+                                        <div class="flex gap-1">
+                                            <button *hasOperation="'dashboards/catalogs:Editar'" mat-icon-button (click)="editGroup(item)">
+                                                <mat-icon class="icon-size-4" svgIcon="feather:edit"></mat-icon>
+                                            </button>
+                                            <button *hasOperation="'dashboards/catalogs:Eliminar'" mat-icon-button (click)="deleteGroup(item.id)">
+                                                <mat-icon class="icon-size-4" svgIcon="feather:trash"></mat-icon>
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

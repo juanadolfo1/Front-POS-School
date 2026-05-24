@@ -23,6 +23,7 @@ export class PaymentModalComponent {
     title: string = 'Registrar pago';
     pendingPayments: Payment[] = [];
     isUpToDate: boolean = false;
+    promotionEligible: boolean = false;
     selectedPayments?: Payment[];
     studentId: number;
     paymentMethods: PaymentMethod[];
@@ -57,6 +58,7 @@ export class PaymentModalComponent {
         this._paymentService.isUpToDate$.subscribe({
             next: (isUpToDate) => {
                 this.isUpToDate = isUpToDate;
+                this.promotionEligible = isUpToDate;
             },
         });
 
@@ -87,31 +89,17 @@ export class PaymentModalComponent {
         this.currentPayments.valueChanges.subscribe({
             next: (value) => {
                 if (value) {
-                    this.selectedPayments = this.pendingPayments.filter((payment) => {
-                        if (value.includes(payment.id)) {
-                            return payment;
-                        }
-                    });
+                    this.selectedPayments = this.pendingPayments.filter((payment) => value.includes(payment.id));
                     this.subtotal = this.selectedPayments.reduce((acc, curr) => acc + Number(curr.amount), 0);
-                    this.discount = this.selectedPayments.reduce((acc, curr) => {
-                        const lastDayWithDiscount = new Date(curr.last_day_with_discount);
-                        const now = new Date();
-                        const isUpToDate = lastDayWithDiscount > now;
-                        if (isUpToDate) {
-                            return acc + Number(curr.discount_amount);
-                        }
-                        return acc;
-                    }, 0);
-                    this.scholarshipAmount = this.selectedPayments.reduce((acc, curr) => {
-                        const lastDayWithDiscount = new Date(curr.last_day_with_discount);
-                        const now = new Date();
-                        const isUpToDate = lastDayWithDiscount > now;
-                        if (isUpToDate) {
-                            return acc + Number(this.scholarship?.amount ?? 0);
-                        }
-                        return acc;
-                    }, 0);
-                    this.total = this.scholarship == null ? this.subtotal - this.discount : this.subtotal - this.scholarshipAmount;
+                    this.discount = this.promotionEligible
+                        ? this.selectedPayments.reduce((acc, curr) => acc + Number(curr.discount_amount), 0)
+                        : 0;
+                    this.scholarshipAmount = this.promotionEligible
+                        ? this.selectedPayments.reduce((acc, curr) => acc + Number(this.scholarship?.amount ?? 0), 0)
+                        : 0;
+                    this.total = this.scholarship != null
+                        ? this.subtotal - this.scholarshipAmount
+                        : this.subtotal - this.discount;
                 }
             },
         });
@@ -127,13 +115,7 @@ export class PaymentModalComponent {
     }
 
     isThereDiscount(): boolean {
-        const isThereDiscount =
-            this.selectedPayments.filter((payment) => payment.last_day_with_discount > (new Date()).toISOString().replace(/(\d{4})-(\d{2})-(\d{2}).*/, '$1-$2-$3'));
-
-        if (isThereDiscount.length) {
-            return true
-        }
-        return false;
+        return this.promotionEligible;
     }
 
     public savePayment() {
@@ -166,9 +148,9 @@ export class PaymentModalComponent {
             pay_concepts: this.selectedPayments.map((concept) => {
                 let received_payment = concept.amount;
 
-                if (concept.last_day_with_discount > (new Date()).toISOString()) {
+                if (this.promotionEligible) {
                     received_payment = concept.amount - concept.discount_amount;
-                    if (this.scholarship?.id && this.scholarship?.id) {
+                    if (this.scholarship?.id) {
                         received_payment = concept.amount - this.scholarship?.amount;
                     }
                 }

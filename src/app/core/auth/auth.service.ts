@@ -6,6 +6,7 @@ import { UserService } from 'app/core/user/user.service';
 import { environment } from 'environments/environment';
 import { User } from '../user/user.types';
 import { NavigationService } from '../navigation/navigation.service';
+import { PermissionsService } from '../permissions/permissions.service';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +19,8 @@ export class AuthService {
     constructor(
         private _httpClient: HttpClient,
         private _userService: UserService,
-        private _navigationService: NavigationService
+        private _navigationService: NavigationService,
+        private _permissionsService: PermissionsService
     ) {}
 
     // -----------------------------------------------------------------------------------------------------
@@ -134,6 +136,7 @@ export class AuthService {
             }
             this._authenticated = true;
             this._userService.user = user;
+            this._permissionsService.loadFromStorage();
             return of(true);
         }
     }
@@ -142,13 +145,23 @@ export class AuthService {
      * Sign out
      */
     signOut(): Observable<any> {
-        // Remove the access token from the local storage
-        localStorage.removeItem('accessToken');
-
-        // Set the authenticated flag to false
+        const token = this.accessToken;
         this._authenticated = false;
 
-        // Return the observable
+        if (token) {
+            return this._httpClient.post(`${this.apiUrl}/auth/logout`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            }).pipe(
+                catchError(() => of(true)),
+                switchMap(() => {
+                    localStorage.removeItem('accessToken');
+                    this._permissionsService.clear();
+                    return of(true);
+                })
+            );
+        }
+        localStorage.removeItem('accessToken');
+        this._permissionsService.clear();
         return of(true);
     }
 

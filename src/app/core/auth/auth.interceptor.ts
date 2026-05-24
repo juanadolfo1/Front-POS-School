@@ -9,13 +9,14 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 import { AuthService } from 'app/core/auth/auth.service';
 import { AuthUtils } from 'app/core/auth/auth.utils';
+import { ToastrService } from 'ngx-toastr';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-    /**
-     * Constructor
-     */
-    constructor(private _authService: AuthService) {}
+    constructor(
+        private _authService: AuthService,
+        private _toastr: ToastrService
+    ) {}
 
     /**
      * Intercept
@@ -53,19 +54,19 @@ export class AuthInterceptor implements HttpInterceptor {
         // Response
         return next.handle(newReq).pipe(
             catchError((error) => {
-                // Catch "401 Unauthorized" responses
-                if (
-                    error instanceof HttpErrorResponse &&
-                    error.status === 401
-                ) {
-                    // Sign out
-                    this._authService.signOut();
+                if (error instanceof HttpErrorResponse) {
+                    if (error.status === 401) {
+                        this._authService.signOut().subscribe();
+                        location.reload();
+                    }
 
-                    // Reload the app
-                    location.reload();
+                    if (error.status === 422 && error.error?.errors) {
+                        const messages = Object.values(error.error.errors).flat();
+                        messages.forEach((msg: string) => this._toastr.error(msg));
+                    }
                 }
 
-                return throwError(error);
+                return throwError(() => error);
             })
         );
     }

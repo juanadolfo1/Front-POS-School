@@ -29,6 +29,7 @@
                         <span class="ml-2">Buscar alumnos</span>
                     </button>
                     <button
+                            *hasOperation="'dashboards/students:Crear'"
                             class="fuse-mat-button-rounded self-center mx-auto w-40 bg-green-500"
                             mat-flat-button
                             [color]="'primary'"
@@ -101,6 +102,7 @@
                                     <td>
                                         <div class="grid grid-cols-2 gap-2">
                                             <button
+                                                    *hasOperation="'dashboards/students:Editar'"
                                                     mat-icon-button
                                                     aria-label="Editar estudiante"
                                             >
@@ -114,6 +116,7 @@
                                     </span>
                                             </button>
                                             <button
+                                                    *hasOperation="'dashboards/students:Eliminar'"
                                                     mat-icon-button
                                                     aria-label="Eliminar estudiante"
                                                     (click)="openDeleteModal(student)"

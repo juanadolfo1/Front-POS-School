@@ -4,33 +4,38 @@ import { Observable, ReplaySubject, tap } from 'rxjs';
 import { Navigation } from 'app/core/navigation/navigation.types';
 import { FuseNavigationItem } from '@fuse/components/navigation';
 import { environment } from 'environments/environment';
+import { PermissionsService } from 'app/core/permissions/permissions.service';
+
+const PI_TO_HEROICONS: Record<string, string> = {
+    'pi pi-users': 'heroicons_outline:users',
+    'pi pi-id-card': 'heroicons_outline:identification',
+    'pi pi-credit-card': 'heroicons_outline:credit-card',
+    'pi pi-file': 'heroicons_outline:document-text',
+    'pi pi-cog': 'heroicons_outline:cog',
+    'pi pi-user-edit': 'heroicons_outline:user-circle',
+    'pi pi-money-bill': 'heroicons_outline:currency-dollar',
+};
 
 @Injectable({
     providedIn: 'root',
 })
 export class NavigationService {
-    private _navigation: ReplaySubject<Navigation> =
-        new ReplaySubject<Navigation>(1);
-
+    private _navigation: ReplaySubject<Navigation> = new ReplaySubject<Navigation>(1);
     private apiUrl = environment.apiUrl;
 
-    /**
-     * Constructor
-     */
-    constructor(private _httpClient: HttpClient) {}
+    constructor(
+        private _httpClient: HttpClient,
+        private _permissionsService: PermissionsService
+    ) {}
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Accessors
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Getter for navigation
-     */
     get navigation$(): Observable<Navigation> {
         return this._navigation.asObservable();
     }
 
     set navigation(values: Array<any>) {
+        // Store permissions
+        this._permissionsService.modules = values;
+
         const home: FuseNavigationItem = {
             id: 'home',
             title: 'Inicio',
@@ -38,13 +43,24 @@ export class NavigationService {
             icon: 'heroicons_outline:home',
             link: '/dashboards/home',
         };
+
         const children: FuseNavigationItem[] = values.map((item) => {
+            let icon = item.icon ?? '';
+            if (icon.startsWith('pi ')) {
+                icon = PI_TO_HEROICONS[icon] ?? 'heroicons_outline:view-grid';
+            } else if (!icon.includes(':')) {
+                icon = `heroicons_outline:${icon}`;
+            }
+
+            const rawPath = item.path ?? '';
+            const link = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+
             return {
-                id: item.id,
+                id: String(item.id),
                 title: item.module_name,
                 type: 'basic',
-                icon: item.icon,
-                link: item.path,
+                icon,
+                link,
             };
         });
 
@@ -65,19 +81,12 @@ export class NavigationService {
         });
     }
 
-    // -----------------------------------------------------------------------------------------------------
-    // @ Public methods
-    // -----------------------------------------------------------------------------------------------------
-
-    /**
-     * Get all navigation data
-     */
     get(): Observable<Navigation> {
         return this._httpClient
             .get<any>(`${this.apiUrl}/auth/get-modules`)
             .pipe(
-                tap((navigation) => {
-                    this.navigation = navigation.data;
+                tap((response) => {
+                    this.navigation = response.data;
                 })
             );
     }

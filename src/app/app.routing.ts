@@ -130,6 +130,11 @@ export const appRoutes: Route[] = [
                 path: 'dashboards',
                 children: [
                     {
+                        path: '',
+                        pathMatch: 'full',
+                        redirectTo: 'home',
+                    },
+                    {
                         path: 'home',
                         loadChildren: () =>
                             import(
@@ -137,18 +142,61 @@ export const appRoutes: Route[] = [
                             ).then((m) => m.HomeModule),
                     },
                     {
-                        path: 'student',
+                        path: 'students',
                         loadChildren: () =>
                             import(
                                 'app/modules/admin/dashboards/student/student.module'
                             ).then((m) => m.StudentModule),
                     },
                     {
-                        path: 'payment',
+                        path: 'student',
+                        redirectTo: 'students',
+                    },
+                    {
+                        path: 'tutors',
+                        loadChildren: () =>
+                            import(
+                                'app/modules/admin/dashboards/tutors/tutors.module'
+                            ).then((m) => m.TutorsModule),
+                    },
+                    {
+                        path: 'payments',
                         loadChildren: () =>
                             import(
                                 'app/modules/admin/dashboards/payment/payment.module'
                             ).then((m) => m.PaymentModule),
+                    },
+                    {
+                        path: 'payment',
+                        redirectTo: 'payments',
+                    },
+                    {
+                        path: 'documents',
+                        loadChildren: () =>
+                            import(
+                                'app/modules/admin/dashboards/documents/documents.module'
+                            ).then((m) => m.DocumentsModule),
+                    },
+                    {
+                        path: 'catalogs',
+                        loadChildren: () =>
+                            import(
+                                'app/modules/admin/dashboards/catalogs/catalogs.module'
+                            ).then((m) => m.CatalogsModule),
+                    },
+                    {
+                        path: 'users',
+                        loadChildren: () =>
+                            import(
+                                'app/modules/admin/dashboards/users/users.module'
+                            ).then((m) => m.UsersModule),
+                    },
+                    {
+                        path: 'daily-income',
+                        loadChildren: () =>
+                            import(
+                                'app/modules/admin/dashboards/daily-income/daily-income.module'
+                            ).then((m) => m.DailyIncomeModule),
                     },
                 ],
             },

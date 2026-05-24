@@ -1,0 +1,53 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <div class="bg-card">
+        <div class="flex flex-col w-full max-w-screen-xl mx-auto px-6 sm:px-8 py-8">
+            <h1 class="text-2xl font-bold text-gray-800 mb-8">Documentos</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Buscar ticket -->
+                <div class="bg-white rounded-2xl shadow-sm border p-6">
+                    <h3 class="font-semibold text-gray-700 mb-4">Buscar Ticket</h3>
+                    <mat-form-field class="w-full">
+                        <mat-label>Folio</mat-label>
+                        <input matInput [formControl]="folio" placeholder="Ej: TKT-001" />
+                    </mat-form-field>
+                    <button *hasOperation="'dashboards/documents:Ver'" mat-flat-button color="primary" class="w-full mt-2" (click)="searchTicket()">
+                        <mat-icon class="icon-size-5" svgIcon="heroicons_outline:search"></mat-icon>
+                        <span class="ml-2">Buscar</span>
+                    </button>
+                </div>
+
+                <!-- Corte de caja -->
+                <div class="bg-white rounded-2xl shadow-sm border p-6">
+                    <h3 class="font-semibold text-gray-700 mb-4">Corte de Caja</h3>
+                    <mat-form-field class="w-full">
+                        <mat-label>Fecha</mat-label>
+                        <input matInput type="date" [formControl]="selectedDate" />
+                    </mat-form-field>
+                    <button *hasOperation="'dashboards/documents:Generar'" mat-flat-button color="primary" class="w-full mt-2" (click)="generateCheckoutClose()">
+                        <mat-icon class="icon-size-5" svgIcon="heroicons_outline:document-download"></mat-icon>
+                        <span class="ml-2">Generar corte</span>
+                    </button>
+                </div>
+
+                <!-- Reporte pendientes -->
+                <div class="bg-white rounded-2xl shadow-sm border p-6">
+                    <h3 class="font-semibold text-gray-700 mb-4">Reporte de Pagos Pendientes</h3>
+                    <p class="text-sm text-gray-500 mb-4">Descarga el reporte completo de pagos pendientes en formato CSV.</p>
+                    <button *hasOperation="'dashboards/documents:Generar'" mat-flat-button color="primary" class="w-full" (click)="downloadPendingReport()">
+                        <mat-icon class="icon-size-5" svgIcon="heroicons_outline:download"></mat-icon>
+                        <span class="ml-2">Descargar reporte</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview -->
+            @if (showPreview && ticketUrl) {
+                <div class="bg-white rounded-2xl shadow-sm border p-6">
+                    <h3 class="font-semibold text-gray-700 mb-4">Vista previa</h3>
+                    <iframe [src]="ticketUrl" class="w-full h-96 border rounded-lg"></iframe>
+                </div>
+            }
+        </div>
+    </div>
+</div>

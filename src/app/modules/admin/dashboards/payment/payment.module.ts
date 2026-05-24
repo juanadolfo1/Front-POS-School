@@ -13,10 +13,11 @@ import { TableModule } from 'primeng/table';
 import { SpinnerModule } from 'app/layout/common/spinner/spinner.module';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { PaymentModalModule } from './payment-modal/payment-modal.module';
-import {QrModalModule} from "./qr-modal/qr-modal.module";
-import {ServicesPaymentModalModule} from "./services-payment-modal/services-payment-modal.module";
-import {TicketModalModule} from "./ticket-modal/ticket-modal.module";
-import {DateSelectorModalModule} from "./date-selector-modal/date-selector-modal.module";
+import { QrModalModule } from './qr-modal/qr-modal.module';
+import { ServicesPaymentModalModule } from './services-payment-modal/services-payment-modal.module';
+import { TicketModalModule } from './ticket-modal/ticket-modal.module';
+import { DateSelectorModalModule } from './date-selector-modal/date-selector-modal.module';
+import { PermissionsModule } from 'app/core/permissions/permissions.module';
 
 @NgModule({
     declarations: [PaymentComponent],
@@ -37,7 +38,8 @@ import {DateSelectorModalModule} from "./date-selector-modal/date-selector-modal
         QrModalModule,
         ServicesPaymentModalModule,
         TicketModalModule,
-        DateSelectorModalModule
+        DateSelectorModalModule,
+        PermissionsModule,
     ],
 })
 export class PaymentModule {}

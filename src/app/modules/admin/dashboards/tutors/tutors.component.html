@@ -1,0 +1,78 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <div class="bg-card">
+        <div class="flex flex-col w-full max-w-screen-xl mx-auto px-6 sm:px-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-full min-w-0 my-8 sm:my-3">
+                <div class="flex flex-col content-center w-full h-15">
+                    <mat-form-field>
+                        <input matInput placeholder="Buscar tutor" [formControl]="searchName" />
+                    </mat-form-field>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 w-full h-13 mb-5">
+                    <button class="fuse-mat-button-rounded self-center mx-auto w-40" mat-flat-button color="primary" (click)="loadTutors()">
+                        <mat-icon class="icon-size-5" svgIcon="heroicons_solid:search"></mat-icon>
+                        <span class="ml-2">Buscar</span>
+                    </button>
+                    <button *hasOperation="'dashboards/tutors:Crear'" class="fuse-mat-button-rounded self-center mx-auto w-40 bg-green-500" mat-flat-button color="primary" (click)="openModal()">
+                        <mat-icon class="icon-size-5" svgIcon="heroicons_solid:document-add"></mat-icon>
+                        <span class="ml-2">Nuevo tutor</span>
+                    </button>
+                </div>
+            </div>
+            <div class="relative flex self-start pt-2 pb-1 pl-5 pr-4 cursor-pointer overflow-hidden rounded-t-xl border border-b-0 bg-default" matRipple>
+                <div class="font-medium leading-6 truncate">Gestión de tutores</div>
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading) {
+        <app-spinner></app-spinner>
+    } @else {
+        @if (filteredTutors.length) {
+            <div class="flex-auto border-t mt-px pt-4 pb-6 sm:pt-6">
+                <div class="w-auto max-w-screen-xl mx-10">
+                    <p-table [value]="filteredTutors" [rows]="10" [paginator]="true" [rowsPerPageOptions]="[5, 10, 15]">
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Relación</th>
+                                <th>Email</th>
+                                <th>Alumno</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </ng-template>
+                        <ng-template pTemplate="body" let-tutor>
+                            <tr>
+                                <td>{{ tutor.id }}</td>
+                                <td>{{ tutor.name }} {{ tutor.first_lastname }} {{ tutor.second_lastname }}</td>
+                                <td>{{ tutor.relation }}</td>
+                                <td>{{ tutor.email }}</td>
+                                <td>{{ tutor.student_name }}</td>
+                                <td>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button *hasOperation="'dashboards/tutors:Editar'" mat-icon-button (click)="openModal(tutor)">
+                                            <span class="flex flex-col items-center">
+                                                <mat-icon class="icon-size-5" svgIcon="feather:edit"></mat-icon>
+                                                <span class="text-xs">Editar</span>
+                                            </span>
+                                        </button>
+                                        <button *hasOperation="'dashboards/tutors:Eliminar'" mat-icon-button (click)="delete(tutor)">
+                                            <span class="flex flex-col items-center">
+                                                <mat-icon class="icon-size-5" svgIcon="feather:trash"></mat-icon>
+                                                <span class="text-xs">Eliminar</span>
+                                            </span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </div>
+        } @else {
+            <div class="grid grid-cols-1 content-center items-center w-full h-40 sm:h-full">
+                <h2 class="text-center">No hay datos para mostrar</h2>
+            </div>
+        }
+    }
+</div>

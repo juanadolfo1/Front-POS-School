@@ -13,7 +13,9 @@ import { TableModule } from 'primeng/table';
 import { SpinnerModule } from 'app/layout/common/spinner/spinner.module';
 import { StudentModalModule } from './student-modal/student-modal.module';
 import { DeleteModalModule } from '../../ui/delete-modal/delete-modal.module';
-import {QrModalModule} from "./qr-modal/qr-modal.module";
+import { QrModalModule } from './qr-modal/qr-modal.module';
+import { PermissionsModule } from 'app/core/permissions/permissions.module';
+
 @NgModule({
     declarations: [StudentComponent],
     imports: [
@@ -29,7 +31,8 @@ import {QrModalModule} from "./qr-modal/qr-modal.module";
         SpinnerModule,
         StudentModalModule,
         DeleteModalModule,
-        QrModalModule
+        QrModalModule,
+        PermissionsModule,
     ],
 })
 export class StudentModule {}

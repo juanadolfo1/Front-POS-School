@@ -1,0 +1,82 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <div class="bg-card">
+        <div class="flex flex-col w-full max-w-screen-xl mx-auto px-6 sm:px-8 py-8">
+            <div class="flex items-center justify-between mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Usuarios</h1>
+                <button *hasOperation="'dashboards/users:Crear'" mat-flat-button color="primary" (click)="openModal()">
+                    <mat-icon class="icon-size-5" svgIcon="heroicons_solid:document-add"></mat-icon>
+                    <span class="ml-2">Nuevo usuario</span>
+                </button>
+            </div>
+
+            @if (isLoading) {
+                <app-spinner></app-spinner>
+            } @else {
+                <p-table [value]="users" [rows]="rows" [totalRecords]="totalRows" [rowsPerPageOptions]="[5, 10, 15]" (onPage)="loadUsers($event)" [lazy]="true" [paginator]="true" [first]="first">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </ng-template>
+                    <ng-template pTemplate="body" let-user>
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.role_name }}</td>
+                            <td>
+                                <div class="flex gap-2">
+                                    <button *hasOperation="'dashboards/users:Editar'" mat-icon-button (click)="openModal(user)">
+                                        <mat-icon class="icon-size-5" svgIcon="feather:edit"></mat-icon>
+                                    </button>
+                                    <button *hasOperation="'dashboards/users:Eliminar'" mat-icon-button (click)="delete(user)">
+                                        <mat-icon class="icon-size-5" svgIcon="feather:trash"></mat-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+@if (showModal) {
+    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
+            <h2 class="text-xl font-bold mb-6">{{ isEditing ? 'Editar' : 'Nuevo' }} Usuario</h2>
+            <form [formGroup]="form" (ngSubmit)="save()">
+                <mat-form-field class="w-full mb-3">
+                    <mat-label>Nombre</mat-label>
+                    <input matInput formControlName="name" />
+                </mat-form-field>
+                <mat-form-field class="w-full mb-3">
+                    <mat-label>Email</mat-label>
+                    <input matInput formControlName="email" type="email" />
+                </mat-form-field>
+                <mat-form-field class="w-full mb-3">
+                    <mat-label>Contraseña</mat-label>
+                    <input matInput formControlName="password" type="password" [placeholder]="isEditing ? 'Dejar vacío para no cambiar' : ''" />
+                </mat-form-field>
+                <mat-form-field class="w-full mb-3">
+                    <mat-label>Rol</mat-label>
+                    <mat-select formControlName="role_id">
+                        @for (role of roles; track role.id) {
+                            <mat-option [value]="role.id">{{ role.role_name }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button" mat-button (click)="showModal = false">Cancelar</button>
+                    <button type="submit" mat-flat-button color="primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}

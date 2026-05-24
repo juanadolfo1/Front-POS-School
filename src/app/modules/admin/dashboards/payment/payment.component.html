@@ -125,6 +125,7 @@
                             <td>{{ currentGroup() }}</td>
                             <td class="grid grid-cols-2">
                                 <button
+                                    *hasOperation="'dashboards/payments:Cobrar'"
                                     (click)="
                                         openPaymentModal(
                                             student.id,
@@ -145,6 +146,7 @@
                                     </span>
                                 </button>
                                 <button
+                                    *hasOperation="'dashboards/payments:Cobrar'"
                                     mat-icon-button
                                     aria-label="Pagar servicio"
                                     (click)="openServicesPaymentModal(student.student_group_id)"
