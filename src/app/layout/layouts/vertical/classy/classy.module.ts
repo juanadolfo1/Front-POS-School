@@ -15,6 +15,7 @@ import { QuickChatModule } from 'app/layout/common/quick-chat/quick-chat.module'
 import { SearchModule } from 'app/layout/common/search/search.module';
 import { ShortcutsModule } from 'app/layout/common/shortcuts/shortcuts.module';
 import { UserModule } from 'app/layout/common/user/user.module';
+import { SettingsModule } from 'app/layout/common/settings/settings.module';
 import { SharedModule } from 'app/shared/shared.module';
 import { ClassyLayoutComponent } from 'app/layout/layouts/vertical/classy/classy.component';
 
@@ -38,6 +39,7 @@ import { ClassyLayoutComponent } from 'app/layout/layouts/vertical/classy/classy
         SearchModule,
         ShortcutsModule,
         UserModule,
+        SettingsModule,
         SharedModule], providers: [provideHttpClient(withInterceptorsFromDi())] })
 export class ClassyLayoutModule
 {
