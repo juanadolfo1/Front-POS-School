@@ -198,6 +198,13 @@ export const appRoutes: Route[] = [
                                 'app/modules/admin/dashboards/daily-income/daily-income.module'
                             ).then((m) => m.DailyIncomeModule),
                     },
+                    {
+                        path: 'scholarships',
+                        loadChildren: () =>
+                            import(
+                                'app/modules/admin/dashboards/scholarships/scholarships.module'
+                            ).then((m) => m.ScholarshipsModule),
+                    },
                 ],
             },
 

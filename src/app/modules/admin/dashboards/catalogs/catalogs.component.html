@@ -21,7 +21,23 @@
                             <form [formGroup]="yearForm" (ngSubmit)="saveYear()">
                                 <mat-form-field class="w-full">
                                     <mat-label>Año</mat-label>
-                                    <input matInput formControlName="year" placeholder="2025-2026" />
+                                    <mat-select formControlName="year">
+                                        @for (y of availableYears; track y) {
+                                            <mat-option [value]="y">{{ y }}</mat-option>
+                                        }
+                                    </mat-select>
+                                </mat-form-field>
+                                <mat-form-field class="w-full">
+                                    <mat-label>Fecha inicio</mat-label>
+                                    <input matInput [matDatepicker]="startPicker" formControlName="starts_at" />
+                                    <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+                                    <mat-datepicker #startPicker></mat-datepicker>
+                                </mat-form-field>
+                                <mat-form-field class="w-full">
+                                    <mat-label>Fecha fin</mat-label>
+                                    <input matInput [matDatepicker]="endPicker" formControlName="ends_at" />
+                                    <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+                                    <mat-datepicker #endPicker></mat-datepicker>
                                 </mat-form-field>
                                 <button type="submit" mat-flat-button color="primary" class="w-full mt-2">Guardar</button>
                             </form>

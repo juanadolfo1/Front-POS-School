@@ -40,7 +40,7 @@ export class PaymentModalComponent {
     currentPayments = new FormControl<number[]>({value: [], disabled: false});
     currentPaymentMethod = new FormControl<number>({value: null, disabled: false});
     partialAmount = new FormControl<number>({value: null, disabled: false});
-    paidAt = new FormControl<string>({value: null, disabled: false});
+    paidAt = new FormControl<Date>({value: null, disabled: false});
 
     ngOnInit() {
         this._paymentService.isOpenPaymentModal$.subscribe({
@@ -90,16 +90,17 @@ export class PaymentModalComponent {
             next: (value) => {
                 if (value) {
                     this.selectedPayments = this.pendingPayments.filter((payment) => value.includes(payment.id));
-                    this.subtotal = this.selectedPayments.reduce((acc, curr) => acc + Number(curr.amount), 0);
-                    this.discount = this.promotionEligible
-                        ? this.selectedPayments.reduce((acc, curr) => acc + Number(curr.discount_amount), 0)
+                    const hasDiscount = this.isUpToDate || this.promotionEligible;
+                    this.subtotal = this.selectedPayments.reduce((acc, curr) =>
+                        acc + Number(hasDiscount ? curr.discount_amount : curr.amount), 0);
+                    this.discount = hasDiscount
+                        ? this.selectedPayments.reduce((acc, curr) => acc + (Number(curr.amount) - Number(curr.discount_amount)), 0)
                         : 0;
-                    this.scholarshipAmount = this.promotionEligible
-                        ? this.selectedPayments.reduce((acc, curr) => acc + Number(this.scholarship?.amount ?? 0), 0)
-                        : 0;
-                    this.total = this.scholarship != null
-                        ? this.subtotal - this.scholarshipAmount
-                        : this.subtotal - this.discount;
+                    this.total = this.subtotal;
+                    if (this.scholarship) {
+                        this.scholarshipAmount = this.total * this.scholarship.amount / 100;
+                        this.total = this.total - this.scholarshipAmount;
+                    }
                 }
             },
         });
@@ -131,14 +132,20 @@ export class PaymentModalComponent {
             return;
         }
 
-        const hasDiscount = this.isThereDiscount();
-        const discountType = this.isUpToDate ? this.scholarship?.id ? 'scholarship' : 'early_payment' : null;
+        const hasDiscount = this.isUpToDate || this.promotionEligible;
+        const discountType = hasDiscount
+            ? (this.scholarship ? 'scholarship' : 'early_payment')
+            : null;
+
         const paymentToSave = {
             is_full_payed: !this.isPartial.value,
-            amount: this.subtotal,
-            has_discount: this.isThereDiscount(),
+            amount: this.selectedPayments.reduce((acc, c) =>
+                acc + Number(hasDiscount ? c.discount_amount : c.amount), 0),
+            has_discount: hasDiscount,
             discount_type: discountType,
-            discount_amount: this.scholarship?.id ? this.scholarshipAmount : this.discount,
+            discount_amount: hasDiscount
+                ? this.selectedPayments.reduce((acc, c) => acc + (Number(c.amount) - Number(c.discount_amount)), 0)
+                : 0,
             student_group_id: this.studentId,
             scholar_year_id: this.currentStudent?.scholar_year_id ?? this.scholarYearId,
             scholarship: this.scholarship,
@@ -146,13 +153,12 @@ export class PaymentModalComponent {
                 id: this.currentPaymentMethod.value
             },
             pay_concepts: this.selectedPayments.map((concept) => {
-                let received_payment = concept.amount;
+                const price = hasDiscount ? Number(concept.discount_amount) : Number(concept.amount);
+                const discountAmt = hasDiscount ? Number(concept.amount) - Number(concept.discount_amount) : 0;
+                let received_payment = price;
 
-                if (this.promotionEligible) {
-                    received_payment = concept.amount - concept.discount_amount;
-                    if (this.scholarship?.id) {
-                        received_payment = concept.amount - this.scholarship?.amount;
-                    }
+                if (this.scholarship) {
+                    received_payment = price - (price * this.scholarship.amount / 100);
                 }
 
                 if (this.isPartial.value) {
@@ -163,16 +169,14 @@ export class PaymentModalComponent {
                     pay_concept_id: concept.id,
                     pay_concept_name: concept.label,
                     pay_concept_type: concept.pay_concept_type,
-                    amount: concept.amount,
-                    discount: this.scholarship?.id ? this.scholarshipAmount : concept.discount_amount,
+                    amount: price,
+                    discount: discountAmt,
                     last_day_with_discount: concept.last_day_with_discount ?? '',
-                    scholar_year_id: this.scholarship?.id ? this.scholarshipAmount : concept.discount_amount,
                     quantity: 1,
                     payments: [
                         {
-                            // paid_at: (new Date()).toISOString().replace(/(\d{4})-(\d{2})-(\d{2}).*/, '$1-$2-$3'),
-                            paid_at: this.paidAt.value,
-                            has_discount: this.isUpToDate,
+                            paid_at: this.paidAt.value ? this.formatDate(this.paidAt.value) : null,
+                            has_discount: hasDiscount,
                             received_payment,
                             is_full_payed: !this.isPartial.value,
                         }
@@ -204,10 +208,18 @@ export class PaymentModalComponent {
         this.selectedPayments = undefined;
         this.isPartial.reset();
         this.partialAmount.reset();
+        this.paidAt.reset();
         this._paymentService.closePaymentModal();
         this.subtotal = undefined;
         this.discount = undefined;
         this.total = undefined;
         this.folioTicket = undefined;
+    }
+
+    private formatDate(date: Date): string {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
     }
 }

@@ -4,3 +4,7 @@
 /* ----------------------------------------------------------------------------------------------------- */
 @import "@ng-select/ng-select/themes/default.theme.css";
 @import "ngx-toastr/toastr";
+
+.cdk-overlay-container {
+    z-index: 99999 !important;
+}

@@ -34,12 +34,9 @@
         <div class="col-span-2 flex flex-col content-center w-full h-15">
             <mat-label>Se pagó</mat-label>
             <mat-form-field>
-                <input
-                    matInput
-                    type="date"
-                    placeholder="Buscar por nombre"
-                    [formControl]="paidAt"
-                />
+                <input matInput [matDatepicker]="paidAtPicker" [formControl]="paidAt" />
+                <mat-datepicker-toggle matIconSuffix [for]="paidAtPicker"></mat-datepicker-toggle>
+                <mat-datepicker #paidAtPicker></mat-datepicker>
             </mat-form-field>
         </div>
         @if(selectedPayments?.length === 1) {

@@ -7,28 +7,22 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 import { SpinnerModule } from 'app/layout/common/spinner/spinner.module';
-import { PermissionsModule } from 'app/core/permissions/permissions.module';
-import { CatalogsComponent } from './catalogs.component';
-import { catalogsRoutes } from './catalogs.routing';
+import { ScholarshipsComponent } from './scholarships.component';
+import { scholarshipsRoutes } from './scholarships.routing';
 
 @NgModule({
-    declarations: [CatalogsComponent],
+    declarations: [ScholarshipsComponent],
     imports: [
         CommonModule,
-        RouterModule.forChild(catalogsRoutes),
+        RouterModule.forChild(scholarshipsRoutes),
         ReactiveFormsModule,
         MatButtonModule,
         MatIconModule,
         MatInputModule,
         MatFormFieldModule,
         MatSelectModule,
-        MatDatepickerModule,
-        MatNativeDateModule,
         SpinnerModule,
-        PermissionsModule,
     ],
 })
-export class CatalogsModule {}
+export class ScholarshipsModule {}

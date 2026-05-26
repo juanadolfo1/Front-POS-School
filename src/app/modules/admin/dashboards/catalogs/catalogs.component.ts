@@ -17,11 +17,14 @@ export class CatalogsComponent implements OnInit {
     scholarYears: SchoolarYear[] = [];
     academicLevels: AcademicLevel[] = [];
     groups: Group[] = [];
+    availableYears: string[] = [];
     isLoading = false;
 
     yearForm = new FormGroup({
         id: new FormControl<number>(null),
         year: new FormControl<string>('', Validators.required),
+        starts_at: new FormControl<string>('', Validators.required),
+        ends_at: new FormControl<string>('', Validators.required),
     });
 
     levelForm = new FormGroup({
@@ -43,7 +46,15 @@ export class CatalogsComponent implements OnInit {
     ) {}
 
     ngOnInit(): void {
+        this.generateAvailableYears();
         this.loadAll();
+    }
+
+    generateAvailableYears(): void {
+        const currentYear = new Date().getFullYear();
+        for (let i = currentYear - 2; i <= currentYear + 3; i++) {
+            this.availableYears.push(`${i}-${i + 1}`);
+        }
     }
 
     loadAll(): void {
@@ -117,7 +128,7 @@ export class CatalogsComponent implements OnInit {
     }
 
     editYear(item: SchoolarYear): void {
-        this.yearForm.patchValue({ id: item.id, year: item.year });
+        this.yearForm.patchValue({ id: item.id, year: item.year, starts_at: item.starts_at, ends_at: item.ends_at });
     }
 
     editLevel(item: AcademicLevel): void {

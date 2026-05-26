@@ -1,0 +1,90 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <div class="bg-card">
+        <div class="flex flex-col w-full max-w-screen-xl mx-auto px-6 sm:px-8 py-8">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">Becas</h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Formulario -->
+                <div class="bg-white rounded-xl border p-6">
+                    <h3 class="font-semibold mb-4">{{ isEditing ? 'Editar' : 'Asignar' }} Beca</h3>
+                    <form [formGroup]="form" (ngSubmit)="save()">
+                        <mat-form-field class="w-full">
+                            <mat-label>Nombre de la beca</mat-label>
+                            <input matInput formControlName="name" placeholder="Beca Excelencia" />
+                        </mat-form-field>
+                        <mat-form-field class="w-full">
+                            <mat-label>Porcentaje (%)</mat-label>
+                            <input matInput type="number" formControlName="amount" placeholder="15" />
+                        </mat-form-field>
+                        @if (!isEditing) {
+                            <mat-form-field class="w-full">
+                                <mat-label>Alumno</mat-label>
+                                <mat-select formControlName="student_id">
+                                    @for (s of students; track s.id) {
+                                        <mat-option [value]="s.id">{{ s.name }} {{ s.first_lastname }} {{ s.second_lastname }}</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field class="w-full">
+                                <mat-label>Ciclo escolar</mat-label>
+                                <mat-select formControlName="scholar_year_id">
+                                    @for (y of scholarYears; track y.id) {
+                                        <mat-option [value]="y.id">{{ y.year }}</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                        }
+                        <div class="flex gap-2 mt-2">
+                            <button type="submit" mat-flat-button color="primary" class="flex-1">Guardar</button>
+                            @if (isEditing) {
+                                <button type="button" mat-stroked-button (click)="resetForm()" class="flex-1">Cancelar</button>
+                            }
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Listado -->
+                <div class="bg-white rounded-xl border p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold">Listado</h3>
+                        <mat-form-field class="w-40" subscriptSizing="dynamic">
+                            <mat-label>Filtrar ciclo</mat-label>
+                            <mat-select [formControl]="filterYear" (selectionChange)="loadScholarships()">
+                                <mat-option [value]="null">Todos</mat-option>
+                                @for (y of scholarYears; track y.id) {
+                                    <mat-option [value]="y.id">{{ y.year }}</mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+
+                    @if (isLoading) {
+                        <app-spinner></app-spinner>
+                    } @else {
+                        <div class="space-y-2">
+                            @for (item of scholarships; track item.id) {
+                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                    <div>
+                                        <span class="font-medium">{{ item.name }}</span>
+                                        <span class="text-sm text-gray-500 ml-2">({{ item.amount }}%)</span>
+                                        <div class="text-xs text-gray-400">{{ item.student_name }} · {{ item.scholar_year }}</div>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button mat-icon-button (click)="edit(item)">
+                                            <mat-icon class="icon-size-4" svgIcon="feather:edit"></mat-icon>
+                                        </button>
+                                        <button mat-icon-button (click)="delete(item.id)">
+                                            <mat-icon class="icon-size-4" svgIcon="feather:trash"></mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                            } @empty {
+                                <p class="text-gray-400 text-center">No hay becas registradas</p>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
