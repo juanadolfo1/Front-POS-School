@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { BrandingService } from 'app/core/branding/branding.service';
 
 @Component({
     selector   : 'app-root',
@@ -7,10 +8,8 @@ import { Component } from '@angular/core';
 })
 export class AppComponent
 {
-    /**
-     * Constructor
-     */
-    constructor()
+    constructor(private _branding: BrandingService)
     {
+        this._branding.load();
     }
 }

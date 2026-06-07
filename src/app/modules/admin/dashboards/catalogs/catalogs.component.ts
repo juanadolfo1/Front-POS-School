@@ -8,6 +8,7 @@ import { AcademicLevel } from 'app/core/types/academic-level';
 import { Group } from 'app/core/types/group';
 import { CatalogsAdminService } from './catalogs.service';
 import { environment } from 'environments/environment';
+import { BrandingService } from 'app/core/branding/branding.service';
 
 @Component({
     selector: 'app-catalogs',
@@ -15,7 +16,7 @@ import { environment } from 'environments/environment';
     styleUrl: './catalogs.component.scss',
 })
 export class CatalogsComponent implements OnInit {
-    activeTab: 'years' | 'levels' | 'groups' | 'clone' = 'years';
+    activeTab: 'years' | 'levels' | 'groups' | 'clone' | 'branding' = 'years';
     scholarYears: SchoolarYear[] = [];
     academicLevels: AcademicLevel[] = [];
     groups: Group[] = [];
@@ -49,16 +50,27 @@ export class CatalogsComponent implements OnInit {
         academic_level_id: new FormControl<number>(null, Validators.required),
     });
 
+    // Branding
+    schoolName = '';
+    currentLogoUrl: string | null = null;
+    currentFaviconUrl: string | null = null;
+    selectedLogo: File | null = null;
+    selectedFavicon: File | null = null;
+    logoPreview: string | null = null;
+    faviconPreview: string | null = null;
+
     constructor(
         private _catalogService: CatalogService,
         private _catalogsAdmin: CatalogsAdminService,
         private _toastr: ToastrService,
-        private _http: HttpClient
+        private _http: HttpClient,
+        private _branding: BrandingService
     ) {}
 
     ngOnInit(): void {
         this.generateAvailableYears();
         this.loadAll();
+        this.loadBranding();
     }
 
     generateAvailableYears(): void {
@@ -158,6 +170,55 @@ export class CatalogsComponent implements OnInit {
                 this.cloneForm.reset({ increase_percent: 0 });
             },
             error: (err) => this._toastr.error(err?.error?.message || 'Error al clonar conceptos'),
+        });
+    }
+
+    // ===== Branding =====
+
+    loadBranding(): void {
+        this._http.get<any>(`${environment.apiUrl}/branding`).subscribe({
+            next: ({ data }) => {
+                this.schoolName = data?.school_name || '';
+                this.currentLogoUrl = data?.logo_url || null;
+                this.currentFaviconUrl = data?.favicon_url || null;
+            },
+        });
+    }
+
+    onLogoSelected(event: Event): void {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (file) {
+            this.selectedLogo = file;
+            this.logoPreview = URL.createObjectURL(file);
+        }
+    }
+
+    onFaviconSelected(event: Event): void {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (file) {
+            this.selectedFavicon = file;
+            this.faviconPreview = URL.createObjectURL(file);
+        }
+    }
+
+    saveBranding(): void {
+        const formData = new FormData();
+        if (this.schoolName) formData.append('school_name', this.schoolName);
+        if (this.selectedLogo) formData.append('logo', this.selectedLogo);
+        if (this.selectedFavicon) formData.append('favicon', this.selectedFavicon);
+
+        this._http.post<any>(`${environment.apiUrl}/branding`, formData).subscribe({
+            next: ({ data }) => {
+                this._toastr.success('Configuración guardada');
+                this.currentLogoUrl = data.logo_url;
+                this.currentFaviconUrl = data.favicon_url;
+                this.selectedLogo = null;
+                this.selectedFavicon = null;
+                this.logoPreview = null;
+                this.faviconPreview = null;
+                this._branding.load();
+            },
+            error: (err) => this._toastr.error(err?.error?.message || 'Error al guardar'),
         });
     }
 }

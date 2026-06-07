@@ -9,6 +9,7 @@
                 <button mat-flat-button [color]="activeTab === 'levels' ? 'primary' : ''" (click)="activeTab = 'levels'">Niveles Académicos</button>
                 <button mat-flat-button [color]="activeTab === 'groups' ? 'primary' : ''" (click)="activeTab = 'groups'">Grupos</button>
                 <button mat-flat-button [color]="activeTab === 'clone' ? 'primary' : ''" (click)="activeTab = 'clone'">Copiar Conceptos</button>
+                <button mat-flat-button [color]="activeTab === 'branding' ? 'primary' : ''" (click)="activeTab = 'branding'">Branding</button>
             </div>
 
             @if (isLoading) {
@@ -185,6 +186,44 @@
                             </mat-form-field>
                             <button type="submit" mat-flat-button color="primary" class="w-full mt-4">Copiar conceptos</button>
                         </form>
+                    </div>
+                }
+
+                <!-- Branding -->
+                @if (activeTab === 'branding') {
+                    <div class="bg-white rounded-xl border p-6 max-w-lg">
+                        <h3 class="font-semibold mb-2">Configuración de la escuela</h3>
+                        <p class="text-sm text-gray-500 mb-4">Logo, favicon y nombre que se muestran en el sistema.</p>
+
+                        <!-- Nombre -->
+                        <mat-form-field class="w-full">
+                            <mat-label>Nombre de la escuela</mat-label>
+                            <input matInput [(ngModel)]="schoolName" placeholder="Colegio San Pablo" />
+                        </mat-form-field>
+
+                        <!-- Logo -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Logo (PNG, JPG, SVG — máx 2MB)</label>
+                            <div class="flex items-center gap-4">
+                                @if (logoPreview || currentLogoUrl) {
+                                    <img [src]="logoPreview || currentLogoUrl" class="h-16 w-auto object-contain rounded border" alt="Logo" />
+                                }
+                                <input type="file" accept=".png,.jpg,.jpeg,.svg" (change)="onLogoSelected($event)" />
+                            </div>
+                        </div>
+
+                        <!-- Favicon -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Favicon (ICO, PNG — máx 512KB)</label>
+                            <div class="flex items-center gap-4">
+                                @if (faviconPreview || currentFaviconUrl) {
+                                    <img [src]="faviconPreview || currentFaviconUrl" class="h-8 w-8 object-contain rounded border" alt="Favicon" />
+                                }
+                                <input type="file" accept=".ico,.png" (change)="onFaviconSelected($event)" />
+                            </div>
+                        </div>
+
+                        <button mat-flat-button color="primary" class="w-full" (click)="saveBranding()">Guardar configuración</button>
                     </div>
                 }
             }
