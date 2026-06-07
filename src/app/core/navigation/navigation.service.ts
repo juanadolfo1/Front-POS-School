@@ -15,6 +15,11 @@ const PI_TO_HEROICONS: Record<string, string> = {
     'pi pi-cog': 'heroicons_outline:cog',
     'pi pi-user-edit': 'heroicons_outline:user-circle',
     'pi pi-money-bill': 'heroicons_outline:currency-dollar',
+    'pi pi-star': 'heroicons_outline:star',
+    'pi pi-percentage': 'heroicons_outline:receipt-tax',
+    'pi pi-user-minus': 'heroicons_outline:user-remove',
+    'pi pi-refresh': 'heroicons_outline:refresh',
+    'pi pi-chart-bar': 'heroicons_outline:chart-bar',
 };
 
 @Injectable({
