@@ -5,19 +5,19 @@ import {
     HttpHandler,
     HttpInterceptor,
     HttpRequest,
+    HttpResponse,
 } from '@angular/common/http';
-import { catchError, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, filter, Observable, switchMap, take, throwError } from 'rxjs';
 import { AuthService } from 'app/core/auth/auth.service';
 import { AuthUtils } from 'app/core/auth/auth.utils';
 import { SecurityService } from 'app/core/auth/security.service';
 import { ToastrService } from 'ngx-toastr';
+import { tap } from 'rxjs/operators';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-    private _loginAttempts = 0;
-    private _lastLoginAttempt = 0;
-    private _maxLoginAttempts = 5;
-    private _lockoutDuration = 60000; // 1 minute
+    private _isRefreshing = false;
+    private _refreshToken$ = new BehaviorSubject<string | null>(null);
 
     constructor(
         private _authService: AuthService,
@@ -31,58 +31,61 @@ export class AuthInterceptor implements HttpInterceptor {
     ): Observable<HttpEvent<any>> {
         let newReq = req.clone();
 
-        // Rate limit login attempts on client side
-        if (req.url.includes('/auth/login') && req.method === 'POST') {
-            if (!this._checkLoginRateLimit()) {
-                this._toastr.error('Demasiados intentos. Espera un momento.');
-                return throwError(() => new Error('Rate limited'));
-            }
-        }
-
         // Add Authorization header if token is valid
         if (
             this._authService.accessToken &&
-            !AuthUtils.isTokenExpired(this._authService.accessToken)
+            !AuthUtils.isTokenExpired(this._authService.accessToken) &&
+            this._securityService.isValidTokenStructure(this._authService.accessToken)
         ) {
-            // Validate token structure before sending
-            if (this._securityService.isValidTokenStructure(this._authService.accessToken)) {
-                newReq = req.clone({
-                    headers: req.headers.set(
-                        'Authorization',
-                        'Bearer ' + this._authService.accessToken
-                    ),
-                });
-            } else {
-                // Token corrupted — force logout
-                this._authService.signOut().subscribe();
-                location.reload();
-                return throwError(() => new Error('Invalid token'));
-            }
+            newReq = req.clone({
+                headers: req.headers.set(
+                    'Authorization',
+                    'Bearer ' + this._authService.accessToken
+                ),
+            });
         }
 
-        // Response handling
         return next.handle(newReq).pipe(
+            // Check for must-refresh-token header in responses
+            tap((event) => {
+                if (event instanceof HttpResponse) {
+                    const mustRefresh = event.headers.get('must-refresh-token');
+                    if (mustRefresh && !this._isRefreshing) {
+                        this._refreshTokenSilently();
+                    }
+                }
+            }),
             catchError((error) => {
                 if (error instanceof HttpErrorResponse) {
                     switch (error.status) {
                         case 401:
-                            this._authService.signOut().subscribe();
-                            location.reload();
+                            this._handle401(error);
                             break;
 
                         case 403:
                             this._toastr.error('No tienes permiso para realizar esta acción');
                             break;
 
+                        case 409:
+                            this._toastr.error(error.error?.message || 'Conflicto: el recurso ya existe');
+                            break;
+
                         case 422:
+                            // Don't show toast here if errors object exists — let components handle field-level errors
+                            // Only show toast if there's no errors object (generic 422)
                             if (error.error?.errors) {
-                                const messages = Object.values(error.error.errors).flat();
-                                messages.forEach((msg: string) => this._toastr.error(msg));
+                                // Field-level errors: propagate to components
+                            } else if (error.error?.message) {
+                                this._toastr.error(error.error.message);
                             }
                             break;
 
                         case 429:
-                            this._toastr.warning('Demasiadas solicitudes. Intenta de nuevo en un momento.');
+                            this._handle429(error);
+                            break;
+
+                        case 500:
+                            this._toastr.error('Error del servidor. Intenta de nuevo más tarde.');
                             break;
                     }
                 }
@@ -92,17 +95,48 @@ export class AuthInterceptor implements HttpInterceptor {
         );
     }
 
-    private _checkLoginRateLimit(): boolean {
-        const now = Date.now();
+    private _handle401(error: HttpErrorResponse): void {
+        const message = error.error?.message || '';
 
-        // Reset counter if lockout period has passed
-        if (now - this._lastLoginAttempt > this._lockoutDuration) {
-            this._loginAttempts = 0;
+        if (message.includes('revoked') || message.includes('Revoked')) {
+            this._toastr.info('Tu sesión fue cerrada');
         }
 
-        this._lastLoginAttempt = now;
-        this._loginAttempts++;
+        // Clear everything and redirect
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('user_modules');
+        localStorage.removeItem('_sec_hash');
+        localStorage.removeItem('_permissions_hash');
+        location.href = '/sign-in';
+    }
 
-        return this._loginAttempts <= this._maxLoginAttempts;
+    private _handle429(error: HttpErrorResponse): void {
+        const retryAfter = error.headers?.get('Retry-After');
+        const seconds = retryAfter ? parseInt(retryAfter, 10) : 60;
+
+        this._toastr.warning(
+            `Demasiados intentos. Intenta de nuevo en ${seconds} segundos`,
+            'Rate Limit',
+            { timeOut: seconds * 1000 }
+        );
+
+        // Emit event for login component to show countdown
+        this._authService.rateLimitedUntil = Date.now() + (seconds * 1000);
+    }
+
+    private _refreshTokenSilently(): void {
+        if (this._isRefreshing) return;
+        this._isRefreshing = true;
+
+        this._authService.refreshToken().subscribe({
+            next: (newToken) => {
+                this._isRefreshing = false;
+                this._refreshToken$.next(newToken);
+            },
+            error: () => {
+                this._isRefreshing = false;
+            },
+        });
     }
 }

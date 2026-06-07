@@ -1,6 +1,7 @@
 import { Route } from '@angular/router';
 import { AuthGuard } from 'app/core/auth/guards/auth.guard';
 import { NoAuthGuard } from 'app/core/auth/guards/noAuth.guard';
+import { PermissionsCheckGuard } from 'app/core/auth/guards/permissions-check.guard';
 import { LayoutComponent } from 'app/layout/layout.component';
 import { InitialDataResolver } from 'app/app.resolvers';
 
@@ -119,7 +120,7 @@ export const appRoutes: Route[] = [
     {
         path: '',
         canActivate: [AuthGuard],
-        canActivateChild: [AuthGuard],
+        canActivateChild: [AuthGuard, PermissionsCheckGuard],
         component: LayoutComponent,
         resolve: {
             initialData: InitialDataResolver,

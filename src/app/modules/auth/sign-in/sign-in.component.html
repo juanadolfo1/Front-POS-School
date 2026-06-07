@@ -94,13 +94,16 @@
                     class="fuse-mat-button-large w-full mt-6"
                     mat-flat-button
                     [color]="'primary'"
-                    [disabled]="signInForm.disabled"
+                    [disabled]="signInForm.disabled || isRateLimited"
                     (click)="signIn()">
-                    <span *ngIf="!signInForm.disabled">
+                    <span *ngIf="!signInForm.disabled && !isRateLimited">
                         Ingresar
                     </span>
+                    <span *ngIf="isRateLimited">
+                        Espera {{ countdownSeconds }}s
+                    </span>
                     <mat-progress-spinner
-                        *ngIf="signInForm.disabled"
+                        *ngIf="signInForm.disabled && !isRateLimited"
                         [diameter]="24"
                         [mode]="'indeterminate'"></mat-progress-spinner>
                 </button>

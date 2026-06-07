@@ -5,6 +5,7 @@ import { Navigation } from 'app/core/navigation/navigation.types';
 import { FuseNavigationItem } from '@fuse/components/navigation';
 import { environment } from 'environments/environment';
 import { PermissionsService } from 'app/core/permissions/permissions.service';
+import { SecurityService } from 'app/core/auth/security.service';
 
 const PI_TO_HEROICONS: Record<string, string> = {
     'pi pi-users': 'heroicons_outline:users',
@@ -25,7 +26,8 @@ export class NavigationService {
 
     constructor(
         private _httpClient: HttpClient,
-        private _permissionsService: PermissionsService
+        private _permissionsService: PermissionsService,
+        private _securityService: SecurityService
     ) {}
 
     get navigation$(): Observable<Navigation> {
@@ -33,8 +35,9 @@ export class NavigationService {
     }
 
     set navigation(values: Array<any>) {
-        // Store permissions
+        // Store permissions with integrity hash
         this._permissionsService.modules = values;
+        this._securityService.storePermissions(values);
 
         const home: FuseNavigationItem = {
             id: 'home',

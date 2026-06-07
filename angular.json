@@ -125,10 +125,12 @@
                             "buildTarget": "fuse:build:production"
                         },
                         "development": {
-                            "buildTarget": "fuse:build:development"
+                            "buildTarget": "fuse:build:development",
+                            "proxyConfig": "proxy.conf.json"
                         },
                         "local": {
-                            "buildTarget": "fuse:build:local"
+                            "buildTarget": "fuse:build:local",
+                            "proxyConfig": "proxy.conf.json"
                         },
                         "remote-local":{
                             "buildTarget": "fuse:build:remote-local"
