@@ -1,0 +1,161 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <div class="bg-card">
+        <div class="flex flex-col w-full max-w-screen-xl mx-auto px-6 sm:px-8 py-8">
+            <div class="flex items-center justify-between mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Bajas de Alumnos</h1>
+                <button mat-flat-button color="primary" (click)="openCreate()" *ngIf="!showForm">
+                    <mat-icon svgIcon="feather:plus"></mat-icon>
+                    Registrar baja
+                </button>
+            </div>
+
+            @if (!showForm) {
+                <!-- Filtro -->
+                <div class="mb-6">
+                    <mat-form-field class="w-64">
+                        <mat-label>Ciclo escolar</mat-label>
+                        <mat-select [formControl]="filterYear" (selectionChange)="loadWithdrawals()">
+                            @for (y of scholarYears; track y.id) {
+                                <mat-option [value]="y.id">{{ y.year }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+                @if (isLoading) {
+                    <app-spinner></app-spinner>
+                } @else {
+                    @if (withdrawals.length === 0 && filterYear.value) {
+                        <p class="text-gray-500">No hay bajas registradas para este ciclo.</p>
+                    }
+
+                    @if (withdrawals.length > 0) {
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="p-3 text-left">Alumno</th>
+                                        <th class="p-3 text-left">CURP</th>
+                                        <th class="p-3 text-left">Tipo</th>
+                                        <th class="p-3 text-left">Motivo</th>
+                                        <th class="p-3 text-left">Fecha efectiva</th>
+                                        <th class="p-3 text-left">Estado</th>
+                                        <th class="p-3 text-left">Reactivación</th>
+                                        <th class="p-3 text-left">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (w of withdrawals; track w.id) {
+                                        <tr class="border-b">
+                                            <td class="p-3">{{ w.student_name }}</td>
+                                            <td class="p-3 font-mono text-xs">{{ w.curp }}</td>
+                                            <td class="p-3">
+                                                <span class="px-2 py-1 rounded text-xs font-medium"
+                                                    [class]="w.type === 'temporal' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'">
+                                                    {{ w.type }}
+                                                </span>
+                                            </td>
+                                            <td class="p-3">{{ w.reason }}</td>
+                                            <td class="p-3">{{ w.effective_date }}</td>
+                                            <td class="p-3">
+                                                <span class="px-2 py-1 rounded text-xs font-medium"
+                                                    [class]="w.status === 1 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'">
+                                                    {{ w.status === 1 ? 'Activa' : 'Reactivada' }}
+                                                </span>
+                                            </td>
+                                            <td class="p-3">{{ w.reactivated_at || '—' }}</td>
+                                            <td class="p-3">
+                                                @if (w.type === 'temporal' && w.status === 1) {
+                                                    <button mat-stroked-button color="primary" (click)="reactivate(w)">
+                                                        Reactivar
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                }
+            }
+
+            <!-- Formulario Registrar Baja -->
+            @if (showForm) {
+                <div class="bg-white rounded-xl border p-6 max-w-2xl">
+                    <h3 class="font-semibold text-lg mb-4">Registrar Baja</h3>
+                    <form [formGroup]="form" (ngSubmit)="save()">
+                        <!-- Buscador de alumno -->
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Alumno</label>
+                            @if (selectedStudentLabel) {
+                                <div class="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+                                    <span class="flex-1">{{ selectedStudentLabel }}</span>
+                                    <button type="button" mat-icon-button (click)="clearStudent()">
+                                        <mat-icon class="icon-size-4" svgIcon="feather:x"></mat-icon>
+                                    </button>
+                                </div>
+                            } @else {
+                                <mat-form-field class="w-full">
+                                    <mat-label>Buscar por nombre o CURP</mat-label>
+                                    <input matInput [formControl]="searchInput" (input)="onSearchChange(searchInput.value)" />
+                                </mat-form-field>
+                                @if (students.length > 0) {
+                                    <div class="border rounded-lg max-h-48 overflow-y-auto">
+                                        @for (s of students; track s.id) {
+                                            <div class="p-2 hover:bg-gray-100 cursor-pointer" (click)="selectStudent(s)">
+                                                {{ s.name }} {{ s.first_lastname }} {{ s.second_lastname }}
+                                                <span class="text-xs text-gray-500 ml-2">{{ s.curp }}</span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                        <mat-form-field class="w-full">
+                            <mat-label>Ciclo escolar</mat-label>
+                            <mat-select formControlName="scholar_year_id">
+                                @for (y of scholarYears; track y.id) {
+                                    <mat-option [value]="y.id">{{ y.year }}</mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de baja</label>
+                            <mat-radio-group formControlName="type" class="flex gap-4">
+                                <mat-radio-button value="temporal">Temporal</mat-radio-button>
+                                <mat-radio-button value="definitiva">Definitiva</mat-radio-button>
+                            </mat-radio-group>
+                            @if (form.value.type === 'definitiva') {
+                                <p class="mt-2 text-sm text-red-600 bg-red-50 p-2 rounded">
+                                    ⚠️ Esta acción es irreversible. El alumno no podrá ser reinscrito.
+                                </p>
+                            }
+                        </div>
+
+                        <mat-form-field class="w-full">
+                            <mat-label>Motivo</mat-label>
+                            <textarea matInput formControlName="reason" rows="3"
+                                placeholder="Ej: Cambio de escuela, problemas económicos, mudanza..."></textarea>
+                            <mat-hint align="end">{{ form.value.reason?.length || 0 }}/255</mat-hint>
+                        </mat-form-field>
+
+                        <mat-form-field class="w-full mt-4">
+                            <mat-label>Fecha efectiva</mat-label>
+                            <input matInput [matDatepicker]="picker" formControlName="effective_date" />
+                            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                            <mat-datepicker #picker></mat-datepicker>
+                        </mat-form-field>
+
+                        <div class="flex gap-3 mt-6">
+                            <button type="submit" mat-flat-button color="primary">Registrar baja</button>
+                            <button type="button" mat-stroked-button (click)="showForm = false">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,8 +1,18 @@
 import { Component } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { DocumentsService } from './documents.service';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { environment } from 'environments/environment';
+
+interface CancelledTicket {
+    folio: string;
+    student_name: string;
+    amount: number;
+    reason: string;
+    cancelled_at: string;
+}
 
 @Component({
     selector: 'app-documents',
@@ -15,10 +25,17 @@ export class DocumentsComponent {
     ticketUrl: SafeResourceUrl;
     showPreview = false;
 
+    // Cancelled tickets
+    startDate = new FormControl<string>('');
+    endDate = new FormControl<string>('');
+    cancelledTickets: CancelledTicket[] = [];
+    showCancelled = false;
+
     constructor(
         private _documentsService: DocumentsService,
         private _toastr: ToastrService,
-        private _sanitizer: DomSanitizer
+        private _sanitizer: DomSanitizer,
+        private _http: HttpClient
     ) {}
 
     searchTicket(): void {
@@ -49,6 +66,22 @@ export class DocumentsComponent {
                 this._toastr.success('Reporte descargado');
             },
             error: () => this._toastr.error('Error al generar reporte'),
+        });
+    }
+
+    loadCancelledTickets(): void {
+        if (!this.startDate.value || !this.endDate.value) {
+            this._toastr.warning('Selecciona rango de fechas');
+            return;
+        }
+        this._http.get<any>(`${environment.apiUrl}/tickets/cancelled`, {
+            params: { start_date: this.startDate.value, end_date: this.endDate.value },
+        }).subscribe({
+            next: ({ data }) => {
+                this.cancelledTickets = Array.isArray(data) ? data : [];
+                this.showCancelled = true;
+            },
+            error: () => this._toastr.error('Error al cargar tickets cancelados'),
         });
     }
 }

@@ -212,6 +212,20 @@ export const appRoutes: Route[] = [
                                 'app/modules/admin/dashboards/promotion-config/promotion-config.module'
                             ).then((m) => m.PromotionConfigModule),
                     },
+                    {
+                        path: 'withdrawals',
+                        loadChildren: () =>
+                            import(
+                                'app/modules/admin/dashboards/withdrawals/withdrawals.module'
+                            ).then((m) => m.WithdrawalsModule),
+                    },
+                    {
+                        path: 'enrollment',
+                        loadChildren: () =>
+                            import(
+                                'app/modules/admin/dashboards/enrollment/enrollment.module'
+                            ).then((m) => m.EnrollmentModule),
+                    },
                 ],
             },
 

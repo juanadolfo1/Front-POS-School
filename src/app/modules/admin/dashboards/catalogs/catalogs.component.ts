@@ -1,11 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
 import { CatalogService } from 'app/shared/catalog/catalog.service';
 import { SchoolarYear } from 'app/core/types/schoolar-year';
 import { AcademicLevel } from 'app/core/types/academic-level';
 import { Group } from 'app/core/types/group';
 import { CatalogsAdminService } from './catalogs.service';
+import { environment } from 'environments/environment';
 
 @Component({
     selector: 'app-catalogs',
@@ -13,12 +15,20 @@ import { CatalogsAdminService } from './catalogs.service';
     styleUrl: './catalogs.component.scss',
 })
 export class CatalogsComponent implements OnInit {
-    activeTab: 'years' | 'levels' | 'groups' = 'years';
+    activeTab: 'years' | 'levels' | 'groups' | 'clone' = 'years';
     scholarYears: SchoolarYear[] = [];
     academicLevels: AcademicLevel[] = [];
     groups: Group[] = [];
     availableYears: string[] = [];
     isLoading = false;
+
+    // Clone concepts form
+    cloneForm = new FormGroup({
+        from_scholar_year_id: new FormControl<number>(null, Validators.required),
+        to_scholar_year_id: new FormControl<number>(null, Validators.required),
+        academic_level_id: new FormControl<number>(null, Validators.required),
+        increase_percent: new FormControl<number>(0, [Validators.min(0)]),
+    });
 
     yearForm = new FormGroup({
         id: new FormControl<number>(null),
@@ -42,7 +52,8 @@ export class CatalogsComponent implements OnInit {
     constructor(
         private _catalogService: CatalogService,
         private _catalogsAdmin: CatalogsAdminService,
-        private _toastr: ToastrService
+        private _toastr: ToastrService,
+        private _http: HttpClient
     ) {}
 
     ngOnInit(): void {
@@ -137,5 +148,16 @@ export class CatalogsComponent implements OnInit {
 
     editGroup(item: Group): void {
         this.groupForm.patchValue({ id: item.id, label: item.label, scholar_year_id: item.scholar_year_id, academic_level_id: item.academic_level_id });
+    }
+
+    cloneConcepts(): void {
+        if (this.cloneForm.invalid) return;
+        this._http.post<any>(`${environment.apiUrl}/catalog/pay-concepts/clone`, this.cloneForm.value).subscribe({
+            next: ({ data }) => {
+                this._toastr.success(`Se copiaron ${data.cloned_concepts} conceptos con incremento del ${data.increase_percent}%`);
+                this.cloneForm.reset({ increase_percent: 0 });
+            },
+            error: (err) => this._toastr.error(err?.error?.message || 'Error al clonar conceptos'),
+        });
     }
 }

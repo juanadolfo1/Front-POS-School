@@ -25,7 +25,15 @@ export class PermissionsService {
     loadFromStorage(): void {
         const stored = localStorage.getItem('user_modules');
         if (stored) {
-            this._modules.next(JSON.parse(stored));
+            try {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    this._modules.next(parsed);
+                }
+            } catch {
+                // Corrupted data — clear it
+                this.clear();
+            }
         }
     }
 

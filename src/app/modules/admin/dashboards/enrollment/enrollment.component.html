@@ -1,0 +1,342 @@
+<div class="flex flex-col flex-auto min-w-0">
+    <div class="bg-card">
+        <div class="flex flex-col w-full max-w-screen-xl mx-auto px-6 sm:px-8 py-8">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">Reinscripción / Cambio de Ciclo</h1>
+
+            <!-- Tabs -->
+            <div class="flex gap-2 mb-6">
+                <button mat-flat-button [color]="activeTab === 'enrollment' ? 'primary' : ''" (click)="activeTab = 'enrollment'">Reinscripción</button>
+                <button mat-flat-button [color]="activeTab === 'grades' ? 'primary' : ''" (click)="activeTab = 'grades'">Configuración de Grados</button>
+            </div>
+
+            <!-- ============ TAB 1: ENROLLMENT ============ -->
+            @if (activeTab === 'enrollment') {
+                <!-- Filtros -->
+                <div class="flex flex-wrap gap-4 mb-6">
+                    <mat-form-field class="w-52">
+                        <mat-label>Ciclo origen</mat-label>
+                        <mat-select [formControl]="fromYear">
+                            @for (y of scholarYears; track y.id) {
+                                <mat-option [value]="y.id">{{ y.year }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field class="w-52">
+                        <mat-label>Ciclo destino</mat-label>
+                        <mat-select [formControl]="toYear">
+                            @for (y of scholarYears; track y.id) {
+                                <mat-option [value]="y.id">{{ y.year }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field class="w-52">
+                        <mat-label>Nivel académico</mat-label>
+                        <mat-select [formControl]="academicLevel">
+                            @for (l of academicLevels; track l.id) {
+                                <mat-option [value]="l.id">{{ l.label }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                    <button mat-flat-button color="primary" (click)="runPreview()" class="self-center">
+                        Vista previa
+                    </button>
+                    <button mat-stroked-button (click)="showIndividualForm = !showIndividualForm" class="self-center">
+                        Reinscribir individual
+                    </button>
+                    <button mat-stroked-button (click)="loadHistory()" class="self-center">
+                        {{ showHistory ? 'Ocultar' : 'Ver' }} historial
+                    </button>
+                </div>
+
+                @if (isLoading) {
+                    <app-spinner></app-spinner>
+                }
+
+                <!-- Preview Result -->
+                @if (previewResult) {
+                    <!-- Summary -->
+                    <div class="flex flex-wrap gap-3 mb-6">
+                        <span class="px-3 py-2 bg-gray-100 rounded-lg font-medium">Total: {{ previewResult.summary.total }}</span>
+                        <span class="px-3 py-2 bg-green-100 text-green-800 rounded-lg font-medium">Promover: {{ previewResult.summary.to_promote }}</span>
+                        <span class="px-3 py-2 bg-blue-100 text-blue-800 rounded-lg font-medium">Egresados: {{ previewResult.summary.to_graduate }}</span>
+                        <span class="px-3 py-2 bg-red-100 text-red-800 rounded-lg font-medium">Excluidos: {{ previewResult.summary.excluded }}</span>
+                        <span class="px-3 py-2 bg-yellow-100 text-yellow-800 rounded-lg font-medium">Sin regla: {{ previewResult.summary.no_rule }}</span>
+                    </div>
+
+                    <!-- No rule warning -->
+                    @if (previewResult.summary.no_rule > 0) {
+                        <div class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg mb-4 text-yellow-800">
+                            ⚠️ Hay {{ previewResult.summary.no_rule }} alumnos sin regla de promoción. Configura las reglas antes de ejecutar.
+                        </div>
+                    }
+
+                    <!-- To promote -->
+                    @if (previewResult.to_promote.length > 0) {
+                        <details class="mb-4 border rounded-lg" open>
+                            <summary class="p-3 bg-green-50 text-green-800 font-medium cursor-pointer">
+                                A promover ({{ previewResult.to_promote.length }})
+                            </summary>
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50">
+                                    <tr><th class="p-2 text-left">Nombre</th><th class="p-2 text-left">Grado actual</th><th class="p-2 text-left">Grado nuevo</th></tr>
+                                </thead>
+                                <tbody>
+                                    @for (s of previewResult.to_promote; track s.student_id) {
+                                        <tr class="border-t"><td class="p-2">{{ s.name }}</td><td class="p-2">{{ s.from_grade }}</td><td class="p-2">{{ s.to_grade }}</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </details>
+                    }
+
+                    <!-- To graduate -->
+                    @if (previewResult.to_graduate.length > 0) {
+                        <details class="mb-4 border rounded-lg">
+                            <summary class="p-3 bg-blue-50 text-blue-800 font-medium cursor-pointer">
+                                Egresados ({{ previewResult.to_graduate.length }})
+                            </summary>
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50">
+                                    <tr><th class="p-2 text-left">Nombre</th><th class="p-2 text-left">Grado final</th></tr>
+                                </thead>
+                                <tbody>
+                                    @for (s of previewResult.to_graduate; track s.student_id) {
+                                        <tr class="border-t"><td class="p-2">{{ s.name }}</td><td class="p-2">{{ s.current_grade }}</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </details>
+                    }
+
+                    <!-- Excluded -->
+                    @if (previewResult.excluded.length > 0) {
+                        <details class="mb-4 border rounded-lg">
+                            <summary class="p-3 bg-red-50 text-red-800 font-medium cursor-pointer">
+                                Excluidos ({{ previewResult.excluded.length }})
+                            </summary>
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50">
+                                    <tr><th class="p-2 text-left">Nombre</th><th class="p-2 text-left">CURP</th><th class="p-2 text-left">Motivo</th></tr>
+                                </thead>
+                                <tbody>
+                                    @for (s of previewResult.excluded; track s.student_id) {
+                                        <tr class="border-t"><td class="p-2">{{ s.name }}</td><td class="p-2 font-mono text-xs">{{ s.curp }}</td><td class="p-2">{{ s.reason }}</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </details>
+                    }
+
+                    <!-- No rule -->
+                    @if (previewResult.no_rule.length > 0) {
+                        <details class="mb-4 border rounded-lg">
+                            <summary class="p-3 bg-yellow-50 text-yellow-800 font-medium cursor-pointer">
+                                Sin regla configurada ({{ previewResult.no_rule.length }})
+                            </summary>
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-50">
+                                    <tr><th class="p-2 text-left">Nombre</th><th class="p-2 text-left">Grado actual</th><th class="p-2 text-left">Nota</th></tr>
+                                </thead>
+                                <tbody>
+                                    @for (s of previewResult.no_rule; track s.student_id) {
+                                        <tr class="border-t"><td class="p-2">{{ s.name }}</td><td class="p-2">{{ s.current_grade }}</td><td class="p-2 text-yellow-700">Configura la regla de promoción para este grado</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </details>
+                    }
+
+                    <!-- Execute button -->
+                    <button mat-flat-button color="warn" [disabled]="!canExecute" (click)="executePromotion()" class="mt-4">
+                        Ejecutar reinscripción
+                    </button>
+                }
+
+                <!-- Individual enrollment form -->
+                @if (showIndividualForm) {
+                    <div class="bg-white rounded-xl border p-6 max-w-xl mt-6">
+                        <h3 class="font-semibold text-lg mb-4">Reinscripción Individual</h3>
+                        <form [formGroup]="individualForm" (ngSubmit)="promoteIndividual()">
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Alumno</label>
+                                @if (selectedStudentLabel) {
+                                    <div class="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+                                        <span class="flex-1">{{ selectedStudentLabel }}</span>
+                                        <button type="button" mat-icon-button (click)="clearStudent()">
+                                            <mat-icon class="icon-size-4" svgIcon="feather:x"></mat-icon>
+                                        </button>
+                                    </div>
+                                } @else {
+                                    <mat-form-field class="w-full">
+                                        <mat-label>Buscar alumno</mat-label>
+                                        <input matInput [formControl]="searchInput" (input)="onSearchChange(searchInput.value)" />
+                                    </mat-form-field>
+                                    @if (students.length > 0) {
+                                        <div class="border rounded-lg max-h-48 overflow-y-auto">
+                                            @for (s of students; track s.id) {
+                                                <div class="p-2 hover:bg-gray-100 cursor-pointer" (click)="selectStudent(s)">
+                                                    {{ s.name }} {{ s.first_lastname }} {{ s.second_lastname }}
+                                                    <span class="text-xs text-gray-500 ml-2">{{ s.curp }}</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                }
+                            </div>
+                            <mat-form-field class="w-full">
+                                <mat-label>Ciclo origen</mat-label>
+                                <mat-select formControlName="from_scholar_year_id">
+                                    @for (y of scholarYears; track y.id) { <mat-option [value]="y.id">{{ y.year }}</mat-option> }
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field class="w-full">
+                                <mat-label>Ciclo destino</mat-label>
+                                <mat-select formControlName="to_scholar_year_id">
+                                    @for (y of scholarYears; track y.id) { <mat-option [value]="y.id">{{ y.year }}</mat-option> }
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field class="w-full">
+                                <mat-label>Nivel académico</mat-label>
+                                <mat-select formControlName="academic_level_id">
+                                    @for (l of academicLevels; track l.id) { <mat-option [value]="l.id">{{ l.label }}</mat-option> }
+                                </mat-select>
+                            </mat-form-field>
+                            <div class="flex gap-3 mt-4">
+                                <button type="submit" mat-flat-button color="primary">Reinscribir</button>
+                                <button type="button" mat-stroked-button (click)="showIndividualForm = false">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                }
+
+                <!-- History -->
+                @if (showHistory) {
+                    <div class="mt-6">
+                        <h3 class="font-semibold text-lg mb-3">Historial de reinscripciones</h3>
+                        @if (history.length === 0) {
+                            <p class="text-gray-500">No hay procesos registrados.</p>
+                        } @else {
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="p-2 text-left">Fecha</th>
+                                            <th class="p-2 text-left">Ciclo origen</th>
+                                            <th class="p-2 text-left">Ciclo destino</th>
+                                            <th class="p-2 text-left">Nivel</th>
+                                            <th class="p-2 text-left">Promovidos</th>
+                                            <th class="p-2 text-left">Egresados</th>
+                                            <th class="p-2 text-left">Excluidos</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (h of history; track h.id) {
+                                            <tr class="border-t">
+                                                <td class="p-2">{{ h.date }}</td>
+                                                <td class="p-2">{{ h.from_scholar_year }}</td>
+                                                <td class="p-2">{{ h.to_scholar_year }}</td>
+                                                <td class="p-2">{{ h.academic_level }}</td>
+                                                <td class="p-2">{{ h.promoted }}</td>
+                                                <td class="p-2">{{ h.graduated }}</td>
+                                                <td class="p-2">{{ h.excluded }}</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+
+            <!-- ============ TAB 2: GRADE CONFIG ============ -->
+            @if (activeTab === 'grades') {
+                <div class="flex gap-4 mb-6">
+                    <mat-form-field class="w-52">
+                        <mat-label>Nivel académico</mat-label>
+                        <mat-select [formControl]="gradeFilter" (selectionChange)="loadGradePromotions()">
+                            @for (l of academicLevels; track l.id) {
+                                <mat-option [value]="l.id">{{ l.label }}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+                    <button mat-flat-button color="primary" (click)="openGradeCreate()" class="self-center">
+                        + Nueva regla
+                    </button>
+                </div>
+
+                @if (showGradeForm) {
+                    <div class="bg-white rounded-xl border p-6 max-w-lg mb-6">
+                        <h3 class="font-semibold mb-4">{{ isEditingGrade ? 'Editar' : 'Nueva' }} Regla</h3>
+                        <form [formGroup]="gradeForm" (ngSubmit)="saveGrade()">
+                            @if (!isEditingGrade) {
+                                <mat-form-field class="w-full">
+                                    <mat-label>Nivel académico</mat-label>
+                                    <mat-select formControlName="academic_level_id">
+                                        @for (l of academicLevels; track l.id) { <mat-option [value]="l.id">{{ l.label }}</mat-option> }
+                                    </mat-select>
+                                </mat-form-field>
+                            }
+                            <mat-form-field class="w-full">
+                                <mat-label>Grado origen</mat-label>
+                                <input matInput formControlName="from_grade" placeholder="4A" maxlength="6" />
+                            </mat-form-field>
+                            <mat-form-field class="w-full">
+                                <mat-label>Grado destino</mat-label>
+                                <input matInput formControlName="to_grade" placeholder="5A" maxlength="6" [disabled]="gradeForm.value.is_final_grade" />
+                            </mat-form-field>
+                            <mat-slide-toggle formControlName="is_final_grade" class="mb-4">
+                                ¿Es grado final? (el alumno egresa)
+                            </mat-slide-toggle>
+                            <div class="flex gap-3 mt-4">
+                                <button type="submit" mat-flat-button color="primary">Guardar</button>
+                                <button type="button" mat-stroked-button (click)="showGradeForm = false">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                }
+
+                @if (gradePromotions.length > 0) {
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="p-3 text-left">Grado origen</th>
+                                    <th class="p-3 text-left">Grado destino</th>
+                                    <th class="p-3 text-left">¿Grado final?</th>
+                                    <th class="p-3 text-left">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (g of gradePromotions; track g.id) {
+                                    <tr class="border-t">
+                                        <td class="p-3 font-medium">{{ g.from_grade }}</td>
+                                        <td class="p-3">{{ g.is_final_grade ? '— (Egresa)' : g.to_grade }}</td>
+                                        <td class="p-3">
+                                            <span class="px-2 py-1 rounded text-xs"
+                                                [class]="g.is_final_grade ? 'bg-blue-100 text-blue-800' : 'bg-gray-100'">
+                                                {{ g.is_final_grade ? 'Sí' : 'No' }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3">
+                                            <div class="flex gap-1">
+                                                <button mat-icon-button (click)="editGrade(g)">
+                                                    <mat-icon class="icon-size-4" svgIcon="feather:edit"></mat-icon>
+                                                </button>
+                                                <button mat-icon-button (click)="deleteGrade(g.id)">
+                                                    <mat-icon class="icon-size-4" svgIcon="feather:trash"></mat-icon>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                } @else if (gradeFilter.value) {
+                    <p class="text-gray-500">No hay reglas configuradas para este nivel.</p>
+                }
+            }
+        </div>
+    </div>
+</div>

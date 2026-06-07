@@ -8,6 +8,7 @@
                 <button mat-flat-button [color]="activeTab === 'years' ? 'primary' : ''" (click)="activeTab = 'years'">Años Escolares</button>
                 <button mat-flat-button [color]="activeTab === 'levels' ? 'primary' : ''" (click)="activeTab = 'levels'">Niveles Académicos</button>
                 <button mat-flat-button [color]="activeTab === 'groups' ? 'primary' : ''" (click)="activeTab = 'groups'">Grupos</button>
+                <button mat-flat-button [color]="activeTab === 'clone' ? 'primary' : ''" (click)="activeTab = 'clone'">Copiar Conceptos</button>
             </div>
 
             @if (isLoading) {
@@ -144,6 +145,46 @@
                                 }
                             </div>
                         </div>
+                    </div>
+                }
+
+                <!-- Copiar Conceptos -->
+                @if (activeTab === 'clone') {
+                    <div class="bg-white rounded-xl border p-6 max-w-lg">
+                        <h3 class="font-semibold mb-2">Copiar conceptos de pago al nuevo ciclo</h3>
+                        <p class="text-sm text-gray-500 mb-4">Clona los conceptos de un ciclo a otro, con opción de incremento porcentual.</p>
+                        <form [formGroup]="cloneForm" (ngSubmit)="cloneConcepts()">
+                            <mat-form-field class="w-full">
+                                <mat-label>Ciclo origen</mat-label>
+                                <mat-select formControlName="from_scholar_year_id">
+                                    @for (y of scholarYears; track y.id) {
+                                        <mat-option [value]="y.id">{{ y.year }}</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field class="w-full">
+                                <mat-label>Ciclo destino</mat-label>
+                                <mat-select formControlName="to_scholar_year_id">
+                                    @for (y of scholarYears; track y.id) {
+                                        <mat-option [value]="y.id">{{ y.year }}</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field class="w-full">
+                                <mat-label>Nivel académico</mat-label>
+                                <mat-select formControlName="academic_level_id">
+                                    @for (l of academicLevels; track l.id) {
+                                        <mat-option [value]="l.id">{{ l.label }}</mat-option>
+                                    }
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field class="w-full">
+                                <mat-label>Incremento %</mat-label>
+                                <input matInput type="number" formControlName="increase_percent" min="0" />
+                                <mat-hint>Aumentar precios un X%</mat-hint>
+                            </mat-form-field>
+                            <button type="submit" mat-flat-button color="primary" class="w-full mt-4">Copiar conceptos</button>
+                        </form>
                     </div>
                 }
             }

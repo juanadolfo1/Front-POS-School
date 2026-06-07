@@ -1,0 +1,22 @@
+@if (isOpen) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6 m-4">
+            <h2 class="text-xl font-bold mb-4">Cancelar Ticket</h2>
+
+            <div class="p-3 bg-red-50 border border-red-200 rounded-lg mb-4 text-sm text-red-700">
+                ⚠️ Se revertirán todos los pagos asociados a este ticket. Esta acción no se puede deshacer.
+            </div>
+
+            <mat-form-field class="w-full">
+                <mat-label>Motivo de cancelación</mat-label>
+                <textarea matInput [formControl]="reason" rows="3" placeholder="Ej: Se cobró concepto equivocado"></textarea>
+                <mat-hint align="end">{{ reason.value?.length || 0 }}/255</mat-hint>
+            </mat-form-field>
+
+            <div class="flex gap-3 mt-6">
+                <button mat-flat-button color="warn" (click)="confirm()">Cancelar ticket</button>
+                <button mat-stroked-button (click)="close()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+}

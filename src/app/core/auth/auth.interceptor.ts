@@ -9,65 +9,100 @@ import {
 import { catchError, Observable, throwError } from 'rxjs';
 import { AuthService } from 'app/core/auth/auth.service';
 import { AuthUtils } from 'app/core/auth/auth.utils';
+import { SecurityService } from 'app/core/auth/security.service';
 import { ToastrService } from 'ngx-toastr';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
+    private _loginAttempts = 0;
+    private _lastLoginAttempt = 0;
+    private _maxLoginAttempts = 5;
+    private _lockoutDuration = 60000; // 1 minute
+
     constructor(
         private _authService: AuthService,
+        private _securityService: SecurityService,
         private _toastr: ToastrService
     ) {}
 
-    /**
-     * Intercept
-     *
-     * @param req
-     * @param next
-     */
     intercept(
         req: HttpRequest<any>,
         next: HttpHandler
     ): Observable<HttpEvent<any>> {
-        // Clone the request object
         let newReq = req.clone();
 
-        // Request
-        //
-        // If the access token didn't expire, add the Authorization header.
-        // We won't add the Authorization header if the access token expired.
-        // This will force the server to return a "401 Unauthorized" response
-        // for the protected API routes which our response interceptor will
-        // catch and delete the access token from the local storage while logging
-        // the user out from the app.
+        // Rate limit login attempts on client side
+        if (req.url.includes('/auth/login') && req.method === 'POST') {
+            if (!this._checkLoginRateLimit()) {
+                this._toastr.error('Demasiados intentos. Espera un momento.');
+                return throwError(() => new Error('Rate limited'));
+            }
+        }
+
+        // Add Authorization header if token is valid
         if (
             this._authService.accessToken &&
             !AuthUtils.isTokenExpired(this._authService.accessToken)
         ) {
-            newReq = req.clone({
-                headers: req.headers.set(
-                    'Authorization',
-                    'Bearer ' + this._authService.accessToken
-                ),
-            });
+            // Validate token structure before sending
+            if (this._securityService.isValidTokenStructure(this._authService.accessToken)) {
+                newReq = req.clone({
+                    headers: req.headers.set(
+                        'Authorization',
+                        'Bearer ' + this._authService.accessToken
+                    ),
+                });
+            } else {
+                // Token corrupted — force logout
+                this._authService.signOut().subscribe();
+                location.reload();
+                return throwError(() => new Error('Invalid token'));
+            }
         }
 
-        // Response
+        // Response handling
         return next.handle(newReq).pipe(
             catchError((error) => {
                 if (error instanceof HttpErrorResponse) {
-                    if (error.status === 401) {
-                        this._authService.signOut().subscribe();
-                        location.reload();
-                    }
+                    switch (error.status) {
+                        case 401:
+                            this._authService.signOut().subscribe();
+                            location.reload();
+                            break;
 
-                    if (error.status === 422 && error.error?.errors) {
-                        const messages = Object.values(error.error.errors).flat();
-                        messages.forEach((msg: string) => this._toastr.error(msg));
+                        case 403:
+                            this._toastr.error('No tienes permiso para realizar esta acción');
+                            break;
+
+                        case 422:
+                            if (error.error?.errors) {
+                                const messages = Object.values(error.error.errors).flat();
+                                messages.forEach((msg: string) => this._toastr.error(msg));
+                            }
+                            break;
+
+                        case 429:
+                            this._toastr.warning('Demasiadas solicitudes. Intenta de nuevo en un momento.');
+                            break;
                     }
                 }
 
                 return throwError(() => error);
             })
         );
+    }
+
+    private _checkLoginRateLimit(): boolean {
+        const now = Date.now();
+
+        // Reset counter if lockout period has passed
+        if (now - this._lastLoginAttempt > this._lockoutDuration) {
+            this._loginAttempts = 0;
+        }
+
+        this._lastLoginAttempt = now;
+        this._loginAttempts++;
+
+        return this._loginAttempts <= this._maxLoginAttempts;
     }
 }

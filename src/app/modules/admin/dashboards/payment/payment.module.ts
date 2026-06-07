@@ -17,6 +17,8 @@ import { QrModalModule } from './qr-modal/qr-modal.module';
 import { ServicesPaymentModalModule } from './services-payment-modal/services-payment-modal.module';
 import { TicketModalModule } from './ticket-modal/ticket-modal.module';
 import { DateSelectorModalModule } from './date-selector-modal/date-selector-modal.module';
+import { AccountStatementModalModule } from './account-statement-modal/account-statement-modal.module';
+import { CancelTicketModalModule } from './cancel-ticket-modal/cancel-ticket-modal.module';
 import { PermissionsModule } from 'app/core/permissions/permissions.module';
 
 @NgModule({
@@ -39,6 +41,8 @@ import { PermissionsModule } from 'app/core/permissions/permissions.module';
         ServicesPaymentModalModule,
         TicketModalModule,
         DateSelectorModalModule,
+        AccountStatementModalModule,
+        CancelTicketModalModule,
         PermissionsModule,
     ],
 })

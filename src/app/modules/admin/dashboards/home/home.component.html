@@ -1,24 +1,91 @@
 <div class="flex flex-col flex-auto min-w-0">
     <div class="bg-card">
-        <div
-            class="flex flex-col h-full w-full max-w-screen-xl my-auto mx-auto px-6 sm:px-8"
-        >
-            <div class="grid grid-cols-1 gap-6 w-full min-w-0 my-8 sm:my-3">
-                <h2>
-                    Bienvenido a la sección de administración de la aplicación
-                    <br />
-                    Aquí podrás gestionar los datos de la aplicación y realizar
-                    tareas administrativas.
-                </h2>
-
-                <!-- Eliminado: la navegación a Ingresos del Día ahora está en el menú Dashboards -->
-
-                <img
-                    class="h-3/4 w-auto mx-auto"
-                    src="assets/icons/logo.png"
-                    alt="Educativa México"
-                />
+        <div class="flex flex-col w-full max-w-screen-xl mx-auto px-6 sm:px-8 py-8">
+            <div class="flex items-center justify-between mb-6">
+                <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+                <mat-form-field class="w-52">
+                    <mat-label>Ciclo escolar</mat-label>
+                    <mat-select [formControl]="filterYear" (selectionChange)="loadSummary()">
+                        @for (y of scholarYears; track y.id) {
+                            <mat-option [value]="y.id">{{ y.year }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
             </div>
+
+            @if (isLoading) {
+                <app-spinner></app-spinner>
+            }
+
+            @if (summary) {
+                <!-- Row 1: Students -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white rounded-xl border p-5">
+                        <p class="text-sm text-gray-500">Total alumnos</p>
+                        <p class="text-3xl font-bold text-gray-800">{{ summary.total_students }}</p>
+                    </div>
+                    @for (level of summary.students_by_level; track level.academic_level_id) {
+                        <div class="bg-white rounded-xl border p-5">
+                            <p class="text-sm text-gray-500">{{ level.academic_level }}</p>
+                            <p class="text-3xl font-bold text-gray-800">{{ level.total_students }}</p>
+                        </div>
+                    }
+                </div>
+
+                <!-- Row 2: Revenue -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white rounded-xl border p-5">
+                        <p class="text-sm text-gray-500">Cobrado</p>
+                        <p class="text-2xl font-bold text-green-700">${{ summary.revenue.collected | number:'1.2-2' }}</p>
+                    </div>
+                    <div class="bg-white rounded-xl border p-5">
+                        <p class="text-sm text-gray-500">Esperado</p>
+                        <p class="text-2xl font-bold text-gray-800">${{ summary.revenue.expected | number:'1.2-2' }}</p>
+                    </div>
+                    <div class="bg-white rounded-xl border p-5">
+                        <p class="text-sm text-gray-500">Porcentaje cobrado</p>
+                        <p class="text-2xl font-bold" [class]="summary.revenue.percentage >= 70 ? 'text-green-700' : 'text-yellow-700'">
+                            {{ summary.revenue.percentage }}%
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-xl border p-5">
+                        <p class="text-sm text-gray-500">Tickets generados</p>
+                        <p class="text-2xl font-bold text-gray-800">{{ summary.revenue.total_tickets }}</p>
+                    </div>
+                </div>
+
+                <!-- Row 3: Pronto pago & Bajas -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white rounded-xl border p-5">
+                        <p class="text-sm text-gray-500">Con pronto pago (este mes)</p>
+                        <p class="text-2xl font-bold text-green-700">{{ summary.promotion.with_discount }}</p>
+                    </div>
+                    <div class="bg-white rounded-xl border p-5">
+                        <p class="text-sm text-gray-500">Sin pronto pago (este mes)</p>
+                        <p class="text-2xl font-bold text-orange-600">{{ summary.promotion.without_discount }}</p>
+                    </div>
+                    <div class="bg-white rounded-xl border p-5">
+                        <p class="text-sm text-gray-500">Bajas</p>
+                        <div class="flex gap-2 mt-1">
+                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Temp: {{ summary.withdrawals.temporal_active }}</span>
+                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Def: {{ summary.withdrawals.definitiva }}</span>
+                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">React: {{ summary.withdrawals.reactivated }}</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl border p-5">
+                        <p class="text-sm text-gray-500">Tickets cancelados</p>
+                        <p class="text-2xl font-bold text-red-600">{{ summary.cancelled_tickets.total }}</p>
+                        <p class="text-sm text-gray-500">${{ summary.cancelled_tickets.total_amount | number:'1.2-2' }}</p>
+                    </div>
+                </div>
+            }
+
+            @if (!summary && !isLoading) {
+                <div class="text-center py-12">
+                    <img class="h-48 w-auto mx-auto mb-4" src="assets/icons/logo.png" alt="Educativa México" />
+                    <p class="text-gray-500">Selecciona un ciclo escolar para ver el resumen.</p>
+                </div>
+            }
         </div>
     </div>
 </div>

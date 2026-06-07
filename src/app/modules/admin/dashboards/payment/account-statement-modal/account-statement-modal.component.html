@@ -1,0 +1,77 @@
+@if (isOpen) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 m-4">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-bold">Estado de Cuenta</h2>
+                <button mat-icon-button (click)="close()">
+                    <mat-icon svgIcon="feather:x"></mat-icon>
+                </button>
+            </div>
+
+            @if (isLoading) {
+                <app-spinner></app-spinner>
+            }
+
+            @if (statement) {
+                <div class="mb-4 p-3 bg-gray-50 rounded-lg">
+                    <span class="font-medium">{{ statement.student.name }}</span>
+                    <span class="text-gray-500 ml-3">{{ statement.student.curp }}</span>
+                    <span class="text-gray-500 ml-3">Grupo: {{ statement.group }}</span>
+                </div>
+
+                <table class="w-full text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="p-2 text-left">Concepto</th>
+                            <th class="p-2 text-right">Monto</th>
+                            <th class="p-2 text-right">Pagado</th>
+                            <th class="p-2 text-right">Saldo</th>
+                            <th class="p-2 text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (c of statement.concepts; track c.concept_id) {
+                            <tr class="border-t cursor-pointer hover:bg-gray-50" (click)="toggleRow(c.concept_id)">
+                                <td class="p-2">{{ c.label }}</td>
+                                <td class="p-2 text-right">${{ c.amount | number:'1.2-2' }}</td>
+                                <td class="p-2 text-right">${{ c.paid_amount | number:'1.2-2' }}</td>
+                                <td class="p-2 text-right">${{ c.balance | number:'1.2-2' }}</td>
+                                <td class="p-2 text-center">
+                                    <span class="px-2 py-1 rounded text-xs font-medium"
+                                        [class]="c.status === 'paid' ? 'bg-green-100 text-green-800' : c.status === 'partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'">
+                                        {{ c.status === 'paid' ? 'Pagado' : c.status === 'partial' ? 'Parcial' : 'Pendiente' }}
+                                    </span>
+                                </td>
+                            </tr>
+                            @if (expandedRows.has(c.concept_id) && c.payments.length > 0) {
+                                <tr>
+                                    <td colspan="5" class="p-2 bg-blue-50">
+                                        <div class="ml-4 text-xs">
+                                            @for (p of c.payments; track p.folio) {
+                                                <div class="flex gap-4 py-1">
+                                                    <span>{{ p.date }}</span>
+                                                    <span class="font-mono">{{ p.folio }}</span>
+                                                    <span>${{ p.amount | number:'1.2-2' }}</span>
+                                                    @if (p.applied_discount) {
+                                                        <span class="text-green-700">✓ Pronto pago</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+
+                <!-- Totals -->
+                <div class="flex justify-end gap-6 mt-4 p-3 bg-gray-50 rounded-lg font-medium">
+                    <span>Total: ${{ statement.totals.total_due | number:'1.2-2' }}</span>
+                    <span class="text-green-700">Pagado: ${{ statement.totals.total_paid | number:'1.2-2' }}</span>
+                    <span class="text-red-700">Adeudo: ${{ statement.totals.balance | number:'1.2-2' }}</span>
+                </div>
+            }
+        </div>
+    </div>
+}
