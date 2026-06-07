@@ -205,6 +205,13 @@ export const appRoutes: Route[] = [
                                 'app/modules/admin/dashboards/scholarships/scholarships.module'
                             ).then((m) => m.ScholarshipsModule),
                     },
+                    {
+                        path: 'promotion-config',
+                        loadChildren: () =>
+                            import(
+                                'app/modules/admin/dashboards/promotion-config/promotion-config.module'
+                            ).then((m) => m.PromotionConfigModule),
+                    },
                 ],
             },
 
