@@ -1,17 +1,19 @@
-import {Component} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {SelectedPayConcept} from "../../../../../core/types/selected-pay-concept";
 import {FormControl} from "@angular/forms";
 import {PaymentMethod} from "../../../../../core/types/payment-method";
 import {PaymentService} from "../payment.service";
 import {Payment} from "../../../../../core/types/payment";
 import {ToastrService} from "ngx-toastr";
+import {Subject, takeUntil} from 'rxjs';
 
 @Component({
     selector: 'services-payment-modal',
     templateUrl: './services-payment-modal.component.html',
     styleUrl: './services-payment-modal.component.scss'
 })
-export class ServicesPaymentModalComponent {
+export class ServicesPaymentModalComponent implements OnInit, OnDestroy {
+    private _destroy$ = new Subject<void>();
 
     public selectedPayConcepts: SelectedPayConcept[] = []
 
@@ -36,22 +38,22 @@ export class ServicesPaymentModalComponent {
     }
 
     ngOnInit() {
-        this._paymentService.studentId$.subscribe({
+        this._paymentService.studentId$.pipe(takeUntil(this._destroy$)).subscribe({
             next: value => this.studentGroupId = value,
         });
-        this._paymentService.currentScholarYear.subscribe({
+        this._paymentService.currentScholarYear.pipe(takeUntil(this._destroy$)).subscribe({
             next: value => this.scholarYearId = value,
         });
-        this._paymentService.paymentMethods$.subscribe({
+        this._paymentService.paymentMethods$.pipe(takeUntil(this._destroy$)).subscribe({
             next: value => this.paymentMethods = value,
         });
-        this._paymentService.pendingPayments$.subscribe({
+        this._paymentService.pendingPayments$.pipe(takeUntil(this._destroy$)).subscribe({
             next: value => this.payConcepts = value,
         });
-        this._paymentService.isOpenServicesModal$.subscribe({
+        this._paymentService.isOpenServicesModal$.pipe(takeUntil(this._destroy$)).subscribe({
             next: value => this.isOpenServicesPaymentModal = value,
-        })
-        this.currentPayConcepts.valueChanges.subscribe({
+        });
+        this.currentPayConcepts.valueChanges.pipe(takeUntil(this._destroy$)).subscribe({
             next: value => {
                 this.selectedPayConcepts = this.currentPayConcepts.value.map(payConceptId => {
                     const payConcept = this.payConcepts.find(payConcept => payConcept.id === payConceptId);
@@ -77,11 +79,17 @@ export class ServicesPaymentModalComponent {
         });
     }
 
+    ngOnDestroy() {
+        this._destroy$.next();
+        this._destroy$.complete();
+    }
+
     public onHide() {
         this.currentPayConcepts.reset();
         this.currentPaymentMethod.reset();
         this.selectedPayConcepts = [];
-        this._paymentService.closeTicketModal();
+        this.folioTicket = undefined;
+        this._paymentService.closePaymentModal();
     }
 
     public savePayment() {

@@ -130,18 +130,25 @@
                         </div>
                         <div class="bg-white rounded-xl border p-6">
                             <h3 class="font-semibold mb-4">Listado</h3>
-                            <div class="space-y-2">
-                                @for (item of groups; track item.id) {
-                                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                        <span>{{ item.label }}</span>
-                                        <div class="flex gap-1">
-                                            <button *hasOperation="'dashboards/catalogs:Editar'" mat-icon-button (click)="editGroup(item)">
-                                                <mat-icon class="icon-size-4" svgIcon="feather:edit"></mat-icon>
-                                            </button>
-                                            <button *hasOperation="'dashboards/catalogs:Eliminar'" mat-icon-button (click)="deleteGroup(item.id)">
-                                                <mat-icon class="icon-size-4" svgIcon="feather:trash"></mat-icon>
-                                            </button>
+                            <div class="space-y-4">
+                                @for (level of objectKeys(groupsByLevel); track level) {
+                                    <div>
+                                        <div class="px-3 py-1 bg-gray-100 rounded text-sm font-semibold text-gray-600 mb-2">
+                                            {{ level }}
                                         </div>
+                                        @for (item of groupsByLevel[level]; track item.id) {
+                                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-1">
+                                                <span>{{ item.label }}</span>
+                                                <div class="flex gap-1">
+                                                    <button *hasOperation="'dashboards/catalogs:Editar'" mat-icon-button (click)="editGroup(item)">
+                                                        <mat-icon class="icon-size-4" svgIcon="feather:edit"></mat-icon>
+                                                    </button>
+                                                    <button *hasOperation="'dashboards/catalogs:Eliminar'" mat-icon-button (click)="deleteGroup(item.id)">
+                                                        <mat-icon class="icon-size-4" svgIcon="feather:trash"></mat-icon>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        }
                                     </div>
                                 }
                             </div>

@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { CancelTicketModalComponent } from './cancel-ticket-modal/cancel-ticket-modal.component';
 import { AcademicLevel } from 'app/core/types/academic-level';
 import { Group } from 'app/core/types/group';
 import { SchoolarYear } from 'app/core/types/schoolar-year';
@@ -17,6 +18,7 @@ import { HttpErrorResponse } from '@angular/common/http';
     styleUrl: './payment.component.scss',
 })
 export class PaymentComponent {
+    @ViewChild(CancelTicketModalComponent) cancelTicketModal: CancelTicketModalComponent;
     private _destroy$ = new Subject<void>();
     constructor(
         private _catalogService: CatalogService,
@@ -33,6 +35,9 @@ export class PaymentComponent {
     public scholarYear: FormControl<number> = new FormControl();
     public academicLevel: FormControl<number> = new FormControl();
     public group: FormControl<number> = new FormControl();
+
+    public accountStatementStudentId: number | null = null;
+    public accountStatementYearId: number | null = null;
 
     public isLoading: boolean = false;
 
@@ -65,53 +70,22 @@ export class PaymentComponent {
 
     getSchoolarYears() {
         this._catalogService.getSchoolarYears().subscribe({
-            next: ({ data }) => {
-                if (data.length) {
-                    this._toastrService.info(
-                        'Años escolares cargados correctamente'
-                    );
-                    this.scholarYears = data;
-                }
-            },
+            next: ({ data }) => { this.scholarYears = data; },
         });
     }
 
     getAcademicLevels() {
         this._catalogService.getAcademicLevels().subscribe({
-            next: ({ data }) => {
-                if (data.length) {
-                    this._toastrService.info(
-                        'Niveles académicos cargados correctamente'
-                    );
-                    this.academicLevels = data;
-                }
-            },
-            error: (err) => {
-                console.log(err);
-                this._toastrService.error(
-                    'Error al cargar los niveles académicos'
-                );
-            },
+            next: ({ data }) => { this.academicLevels = data; },
+            error: () => this._toastrService.error('Error al cargar los niveles académicos'),
         });
     }
 
     getGroups(scholarYearId?: number, academicLevelId?: number) {
-        this._catalogService
-            .getGroups(scholarYearId, academicLevelId)
-            .subscribe({
-                next: ({ data }) => {
-                    if (data.length) {
-                        this._toastrService.info(
-                            'Grupos cargados correctamente'
-                        );
-                        this.groups = data;
-                    }
-                },
-                error: (err) => {
-                    console.log(err);
-                    this._toastrService.error('Error al cargar los grupos');
-                },
-            });
+        this._catalogService.getGroups(scholarYearId, academicLevelId).subscribe({
+            next: ({ data }) => { this.groups = data; },
+            error: () => this._toastrService.error('Error al cargar los grupos'),
+        });
     }
 
     getStudentsByGroup() {
@@ -218,6 +192,15 @@ export class PaymentComponent {
 
     openDateSelectorModal(){
         this._paymentService.openDateSelectorModal();
+    }
+
+    openCancelTicketModal(ticketId: number) {
+        this.cancelTicketModal.open(ticketId, () => this.getStudentsByGroup());
+    }
+
+    openAccountStatement(studentId: number) {
+        this.accountStatementStudentId = studentId;
+        this.accountStatementYearId = this.scholarYear.value;
     }
 
     getPendingPaymentReport() {

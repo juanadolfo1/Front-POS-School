@@ -8,6 +8,8 @@
     [draggable]="false"
 >
     <div class="grid grid-cols-1 gap-6 w-full">
-    <iframe class="w-full h-128" [src]="ticketUrl"></iframe>
+    @if (ticketUrl) {
+        <iframe class="w-full h-128" [src]="ticketUrl"></iframe>
+    }
     </div>
 </p-dialog>

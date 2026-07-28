@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {PaymentService} from '../payment.service';
 import {Payment, PaymentToSave} from 'app/core/types/payment';
 import {FormControl} from '@angular/forms';
@@ -6,13 +6,16 @@ import {ToastrService} from 'ngx-toastr';
 import {PaymentMethod} from "../../../../../core/types/payment-method";
 import {Student} from "../../../../../core/types/student.class";
 import {Scholarship} from "../../../../../core/types/scholarship";
+import {Subject, takeUntil} from 'rxjs';
 
 @Component({
     selector: 'payment-modal',
     templateUrl: './payment-modal.component.html',
     styleUrl: './payment-modal.component.scss',
 })
-export class PaymentModalComponent {
+export class PaymentModalComponent implements OnInit, OnDestroy {
+    private _destroy$ = new Subject<void>();
+
     constructor(
         private _paymentService: PaymentService,
         private _toastrService: ToastrService
@@ -43,50 +46,42 @@ export class PaymentModalComponent {
     paidAt = new FormControl<Date>({value: null, disabled: false});
 
     ngOnInit() {
-        this._paymentService.isOpenPaymentModal$.subscribe({
-            next: (isOpen) => {
-                this.isOpenPaymentModal = isOpen;
-            },
+        this._paymentService.isOpenPaymentModal$.pipe(takeUntil(this._destroy$)).subscribe({
+            next: (isOpen) => { this.isOpenPaymentModal = isOpen; },
         });
 
-        this._paymentService.pendingPayments$.subscribe({
-            next: (payments) => {
-                this.pendingPayments = payments;
-            },
+        this._paymentService.pendingPayments$.pipe(takeUntil(this._destroy$)).subscribe({
+            next: (payments) => { this.pendingPayments = payments; },
         });
 
-        this._paymentService.isUpToDate$.subscribe({
+        this._paymentService.isUpToDate$.pipe(takeUntil(this._destroy$)).subscribe({
             next: (isUpToDate) => {
                 this.isUpToDate = isUpToDate;
                 this.promotionEligible = isUpToDate;
             },
         });
 
-        this._paymentService.paymentMethods$.subscribe({
-            next: (paymentMethods) => {
-                this.paymentMethods = paymentMethods;
-            }
+        this._paymentService.paymentMethods$.pipe(takeUntil(this._destroy$)).subscribe({
+            next: (paymentMethods) => { this.paymentMethods = paymentMethods; }
         });
 
-        this._paymentService.currentStudent$.subscribe({
-            next: (currentStudent) => {
-                this.currentStudent = currentStudent;
-            }
+        this._paymentService.currentStudent$.pipe(takeUntil(this._destroy$)).subscribe({
+            next: (currentStudent) => { this.currentStudent = currentStudent; }
         });
 
-        this._paymentService.currentScholarship$.subscribe({
-            next: (currentScholarship) => {
-                this.scholarship = currentScholarship;
-            }
-        })
+        this._paymentService.currentScholarship$.pipe(takeUntil(this._destroy$)).subscribe({
+            next: (currentScholarship) => { this.scholarship = currentScholarship; }
+        });
 
-        this._paymentService.currentScholarYear.subscribe({
-            next: (currentScholarYear) => {
-                this.scholarYearId = currentScholarYear;
-            }
-        })
+        this._paymentService.currentScholarYear.pipe(takeUntil(this._destroy$)).subscribe({
+            next: (currentScholarYear) => { this.scholarYearId = currentScholarYear; }
+        });
 
-        this.currentPayments.valueChanges.subscribe({
+        this._paymentService.studentId$.pipe(takeUntil(this._destroy$)).subscribe({
+            next: (studentId) => { this.studentId = studentId; },
+        });
+
+        this.currentPayments.valueChanges.pipe(takeUntil(this._destroy$)).subscribe({
             next: (value) => {
                 if (value) {
                     this.selectedPayments = this.pendingPayments.filter((payment) => value.includes(payment.id));
@@ -104,15 +99,11 @@ export class PaymentModalComponent {
                 }
             },
         });
-        this._paymentService.studentId$.subscribe({
-            next: (studentd) => {
-                this.studentId = studentd;
-            },
-        });
+    }
 
-        this.paidAt.valueChanges.subscribe({
-            next: (paidAt) => {console.log(paidAt)}
-        })
+    ngOnDestroy() {
+        this._destroy$.next();
+        this._destroy$.complete();
     }
 
     isThereDiscount(): boolean {
@@ -148,7 +139,7 @@ export class PaymentModalComponent {
                 : 0,
             student_group_id: this.studentId,
             scholar_year_id: this.currentStudent?.scholar_year_id ?? this.scholarYearId,
-            scholarship: this.scholarship,
+            ...(this.scholarship ? { scholarship_id: this.scholarship.id } : {}),
             payment_method: {
                 id: this.currentPaymentMethod.value
             },

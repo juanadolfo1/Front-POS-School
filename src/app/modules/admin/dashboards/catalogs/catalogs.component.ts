@@ -143,6 +143,17 @@ export class CatalogsComponent implements OnInit {
         });
     }
 
+    objectKeys = Object.keys;
+
+    get groupsByLevel(): Record<string, Group[]> {
+        return this.groups.reduce((acc, group) => {
+            const level = group.academic_level ?? 'Sin nivel';
+            if (!acc[level]) acc[level] = [];
+            acc[level].push(group);
+            return acc;
+        }, {} as Record<string, Group[]>);
+    }
+
     deleteGroup(id: number): void {
         if (!confirm('¿Eliminar?')) return;
         this._catalogsAdmin.deleteGroup(id).subscribe({

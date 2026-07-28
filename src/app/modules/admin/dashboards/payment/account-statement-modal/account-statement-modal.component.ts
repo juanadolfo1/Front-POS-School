@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'environments/environment';
 
@@ -7,6 +7,12 @@ interface ConceptPayment {
     date: string;
     folio: string;
     applied_discount: boolean;
+    is_full_payment: boolean;
+    paid_amount: number;
+    paid_at: string;
+    folio_ticket: string;
+    pay_concept_name: string;
+    pay_concept_type: string;
 }
 
 interface AccountConcept {
@@ -31,22 +37,29 @@ interface AccountStatement {
     selector: 'account-statement-modal',
     templateUrl: './account-statement-modal.component.html',
 })
-export class AccountStatementModalComponent implements OnInit {
+export class AccountStatementModalComponent implements OnInit, OnChanges {
+    @Input() studentId: number | null = null;
+    @Input() scholarYearId: number | null = null;
+
     isOpen = false;
     statement: AccountStatement | null = null;
     isLoading = false;
     expandedRows: Set<number> = new Set();
 
-    private _studentId: number;
-    private _scholarYearId: number;
-
     constructor(private _http: HttpClient) {}
 
     ngOnInit(): void {}
 
+    ngOnChanges(changes: SimpleChanges): void {
+        if ((changes['studentId'] || changes['scholarYearId']) && this.studentId && this.scholarYearId) {
+            this.isOpen = true;
+            this.load();
+        }
+    }
+
     open(studentId: number, scholarYearId: number): void {
-        this._studentId = studentId;
-        this._scholarYearId = scholarYearId;
+        this.studentId = studentId;
+        this.scholarYearId = scholarYearId;
         this.isOpen = true;
         this.load();
     }
@@ -67,8 +80,10 @@ export class AccountStatementModalComponent implements OnInit {
 
     private load(): void {
         this.isLoading = true;
+        this.statement = null;
+        this.expandedRows.clear();
         this._http.get<any>(`${environment.apiUrl}/dashboard/account-statement`, {
-            params: { student_id: this._studentId, scholar_year_id: this._scholarYearId },
+            params: { student_id: this.studentId, scholar_year_id: this.scholarYearId },
         }).subscribe({
             next: ({ data }) => {
                 this.statement = data;

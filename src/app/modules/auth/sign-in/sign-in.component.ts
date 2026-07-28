@@ -67,8 +67,14 @@ export class AuthSignInComponent implements OnInit, OnDestroy {
                     this._activatedRoute.snapshot.queryParamMap.get('redirectURL') || '/signed-in-redirect';
                 this._router.navigateByUrl(redirectURL);
             },
-            error: (error: HttpErrorResponse) => {
+            error: (error: HttpErrorResponse | string) => {
                 this.signInForm.enable();
+
+                // Already authenticated — just redirect
+                if (typeof error === 'string') {
+                    this._router.navigate(['']);
+                    return;
+                }
 
                 if (error.status === 429) {
                     this._startCountdown(error);
