@@ -102,4 +102,12 @@ export class StudentService {
         this._currentQrCodeUuid.next(uuid);
         this._isOpenQrModal.next(true);
     }
+
+    public assignGroup(studentId: number, groupId: number): Observable<ApiResponse<any>> {
+        return this._http.post<ApiResponse<any>>(`${this.apiUrl}/student/assign-group`, { student_id: studentId, group_id: groupId });
+    }
+
+    public getStudentGroups(studentId: number): Observable<ApiResponse<any[]>> {
+        return this._http.get<ApiResponse<any[]>>(`${this.apiUrl}/student/${studentId}/groups`);
+    }
 }

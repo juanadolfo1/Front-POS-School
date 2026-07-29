@@ -9,12 +9,16 @@ export class DocumentsService {
 
     constructor(private _http: HttpClient) {}
 
-    getTicketUrl(folio: string): string {
-        return `${this.apiUrl}/documents/get-ticket/${folio}`;
+    getTicketPdf(folio: string): Observable<Blob> {
+        return this._http.get(`${this.apiUrl}/documents/get-ticket/${folio}`, {
+            responseType: 'blob',
+        });
     }
 
-    getCheckoutCloseUrl(date: string): string {
-        return `${this.apiUrl}/documents/close-ticket/${date}`;
+    getCheckoutClosePdf(date: string): Observable<Blob> {
+        return this._http.get(`${this.apiUrl}/documents/close-ticket/${date}`, {
+            responseType: 'blob',
+        });
     }
 
     getPendingPaymentReport(): Observable<Blob> {

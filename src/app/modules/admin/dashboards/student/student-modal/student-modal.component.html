@@ -7,100 +7,111 @@
     (onHide)="onHide()"
     [draggable]="false"
 >
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-        <div class="col-span-2 flex flex-col content-center w-full h-15">
-            <mat-form-field>
-                <mat-label>Nombre</mat-label>
-                <input matInput [formControl]="name" placeholder="Nombre" />
-                @if (name.hasError('required')) {
-                <mat-error *ngIf="name.hasError('required')"
-                    >Campo requerido</mat-error
-                >
-                }
-            </mat-form-field>
-        </div>
-        <div class="flex flex-col content-center w-full h-15">
-            <mat-form-field>
-                <mat-label>Primer apellido</mat-label>
-                <input
-                    matInput
-                    [formControl]="firstLastName"
-                    placeholder="Primer apellido"
-                />
-                @if (firstLastName.hasError('required')) {
-                <mat-error *ngIf="firstLastName.hasError('required')"
-                    >Campo requerido</mat-error
-                >
-                }
-            </mat-form-field>
-        </div>
-        <div class="flex flex-col content-center w-full h-15">
-            <mat-form-field>
-                <mat-label>Segundo apellido</mat-label>
-                <input
-                    matInput
-                    [formControl]="secondLastName"
-                    placeholder="Segundo apellido"
-                />
-            </mat-form-field>
-        </div>
-        <div class="flex flex-col content-center w-full h-15">
-            <mat-form-field>
-                <mat-label>Correo electrónico</mat-label>
-                <input
-                    matInput
-                    [formControl]="email"
-                    placeholder="Correo electrónico"
-                />
-            </mat-form-field>
-        </div>
-
-        <div class="flex flex-col content-center w-full h-15">
-            <mat-form-field>
-                <mat-label>CURP</mat-label>
-                <input matInput [formControl]="curp" placeholder="Curp" />
-            </mat-form-field>
-        </div>
-
-        <div class="flex flex-col content-center w-full h-15">
-            <mat-form-field>
-                <mat-label>Fecha de nacimiento</mat-label>
-                <input
-                    matInput
-                    type="date"
-                    [formControl]="birthDay"
-                    placeholder="Fecha de nacimiento"
-                />
-            </mat-form-field>
-        </div>
-        <div class="flex flex-col items-center md:content-end w-full">
+    <!-- PASO 1: Datos del alumno -->
+    @if (step === 1) {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+            <div class="col-span-2 flex flex-col content-center w-full h-15">
+                <mat-form-field>
+                    <mat-label>Nombre</mat-label>
+                    <input matInput [formControl]="name" placeholder="Nombre" />
+                    <mat-error *ngIf="name.hasError('required')">Campo requerido</mat-error>
+                </mat-form-field>
+            </div>
             <div class="flex flex-col content-center w-full h-15">
-                <label>Género</label>
-                <ng-select
-                    [items]="genderOptions"
-                    bindLabel="label"
-                    bindValue="value"
-                    [formControl]="gender"
-                    [placeholder]="'Selecciona el género'"
-                    [clearable]="false"
-                ></ng-select>
+                <mat-form-field>
+                    <mat-label>Primer apellido</mat-label>
+                    <input matInput [formControl]="firstLastName" placeholder="Primer apellido" />
+                    <mat-error *ngIf="firstLastName.hasError('required')">Campo requerido</mat-error>
+                </mat-form-field>
+            </div>
+            <div class="flex flex-col content-center w-full h-15">
+                <mat-form-field>
+                    <mat-label>Segundo apellido</mat-label>
+                    <input matInput [formControl]="secondLastName" placeholder="Segundo apellido" />
+                </mat-form-field>
+            </div>
+            <div class="flex flex-col content-center w-full h-15">
+                <mat-form-field>
+                    <mat-label>Correo electrónico</mat-label>
+                    <input matInput [formControl]="email" placeholder="Correo electrónico" />
+                </mat-form-field>
+            </div>
+            <div class="flex flex-col content-center w-full h-15">
+                <mat-form-field>
+                    <mat-label>CURP</mat-label>
+                    <input matInput [formControl]="curp" placeholder="CURP" maxlength="18" />
+                </mat-form-field>
+            </div>
+            <div class="flex flex-col content-center w-full h-15">
+                <mat-form-field>
+                    <mat-label>Fecha de nacimiento</mat-label>
+                    <input matInput type="date" [formControl]="birthDay" />
+                </mat-form-field>
+            </div>
+            <div class="flex flex-col items-center md:content-end w-full">
+                <div class="flex flex-col content-center w-full h-15">
+                    <label>Género</label>
+                    <ng-select
+                        [items]="genderOptions"
+                        bindLabel="label"
+                        bindValue="value"
+                        [formControl]="gender"
+                        placeholder="Selecciona el género"
+                        [clearable]="false"
+                    ></ng-select>
+                </div>
+            </div>
+            <div class="col-span-2 flex flex-col items-center md:content-end w-full mt-5">
+                <button class="fuse-mat-button-rounded w-50 mt-1" mat-flat-button [color]="'primary'" (click)="save()">
+                    <mat-icon class="icon-size-5" [svgIcon]="'heroicons_solid:save'"></mat-icon>
+                    <span class="ml-2">Guardar</span>
+                </button>
             </div>
         </div>
-        <div
-            class="col-span-2 flex flex-col items-center md:content-end w-full mt-5"
-        >
-            <button
-                class="fuse-mat-button-rounded w-50 mt-1"
-                mat-flat-button
-                [color]="'primary'"
-                (click)="save()"
-            >
-                <mat-icon
-                    class="icon-size-5"
-                    [svgIcon]="'heroicons_solid:save'"
-                ></mat-icon>
-                <span class="ml-2">Guardar</span>
-            </button>
+    }
+
+    <!-- PASO 2: Asignar grupo -->
+    @if (step === 2) {
+        <div class="flex flex-col gap-4 w-full">
+            <p class="text-gray-600">El alumno fue creado. Asígnale un grupo para el ciclo escolar actual (opcional).</p>
+
+            <mat-form-field class="w-full">
+                <mat-label>Ciclo escolar</mat-label>
+                <mat-select [formControl]="scholarYear" (selectionChange)="onScholarYearChange()">
+                    @for (y of scholarYears; track y.id) {
+                        <mat-option [value]="y.id">{{ y.year }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+                <mat-label>Nivel académico</mat-label>
+                <mat-select [formControl]="academicLevel" (selectionChange)="onAcademicLevelChange()">
+                    @for (l of academicLevels; track l.id) {
+                        <mat-option [value]="l.id">{{ l.label }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+                <mat-label>Grupo</mat-label>
+                <mat-select [formControl]="group">
+                    @for (g of groups; track g.id) {
+                        <mat-option [value]="g.id">{{ g.label }}</mat-option>
+                    }
+                </mat-select>
+                @if (!groups.length && academicLevel.value && scholarYear.value) {
+                    <mat-hint>No hay grupos para este nivel y ciclo</mat-hint>
+                }
+            </mat-form-field>
+
+            <div class="flex gap-3 justify-center mt-2">
+                <button mat-flat-button color="primary" (click)="assignGroup()">
+                    <mat-icon class="icon-size-5" svgIcon="heroicons_solid:save"></mat-icon>
+                    <span class="ml-2">Asignar grupo</span>
+                </button>
+                <button mat-stroked-button (click)="skipGroup()">Omitir</button>
+            </div>
         </div>
-    </div>
+    }
 </p-dialog>

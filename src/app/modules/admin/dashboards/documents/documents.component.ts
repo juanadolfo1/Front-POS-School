@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ToastrService } from 'ngx-toastr';
@@ -19,17 +19,20 @@ interface CancelledTicket {
     templateUrl: './documents.component.html',
     styleUrl: './documents.component.scss',
 })
-export class DocumentsComponent {
+export class DocumentsComponent implements OnDestroy {
     folio = new FormControl<string>('');
     selectedDate = new FormControl<string>(new Date().toISOString().slice(0, 10));
     ticketUrl: SafeResourceUrl;
     showPreview = false;
+    loadingPdf = false;
 
     // Cancelled tickets
     startDate = new FormControl<string>('');
     endDate = new FormControl<string>('');
     cancelledTickets: CancelledTicket[] = [];
     showCancelled = false;
+
+    private _blobUrl: string | null = null;
 
     constructor(
         private _documentsService: DocumentsService,
@@ -38,22 +41,42 @@ export class DocumentsComponent {
         private _http: HttpClient
     ) {}
 
+    ngOnDestroy(): void {
+        this._revokeBlobUrl();
+    }
+
     searchTicket(): void {
         if (!this.folio.value?.trim()) {
             this._toastr.warning('Ingresa un folio');
             return;
         }
-        this.ticketUrl = this._sanitizer.bypassSecurityTrustResourceUrl(
-            this._documentsService.getTicketUrl(this.folio.value)
-        );
-        this.showPreview = true;
+        this.loadingPdf = true;
+        this._documentsService.getTicketPdf(this.folio.value).subscribe({
+            next: (blob) => {
+                this._setBlobUrl(blob);
+                this.showPreview = true;
+                this.loadingPdf = false;
+            },
+            error: () => {
+                this._toastr.error('Error al cargar el ticket');
+                this.loadingPdf = false;
+            },
+        });
     }
 
     generateCheckoutClose(): void {
-        this.ticketUrl = this._sanitizer.bypassSecurityTrustResourceUrl(
-            this._documentsService.getCheckoutCloseUrl(this.selectedDate.value)
-        );
-        this.showPreview = true;
+        this.loadingPdf = true;
+        this._documentsService.getCheckoutClosePdf(this.selectedDate.value).subscribe({
+            next: (blob) => {
+                this._setBlobUrl(blob);
+                this.showPreview = true;
+                this.loadingPdf = false;
+            },
+            error: () => {
+                this._toastr.error('Error al generar el corte');
+                this.loadingPdf = false;
+            },
+        });
     }
 
     downloadPendingReport(): void {
@@ -63,6 +86,7 @@ export class DocumentsComponent {
                 a.href = URL.createObjectURL(blob);
                 a.download = `reporte-pagos-pendientes-${new Date().toLocaleDateString('es-MX')}.csv`;
                 a.click();
+                URL.revokeObjectURL(a.href);
                 this._toastr.success('Reporte descargado');
             },
             error: () => this._toastr.error('Error al generar reporte'),
@@ -83,5 +107,18 @@ export class DocumentsComponent {
             },
             error: () => this._toastr.error('Error al cargar tickets cancelados'),
         });
+    }
+
+    private _setBlobUrl(blob: Blob): void {
+        this._revokeBlobUrl();
+        this._blobUrl = URL.createObjectURL(blob);
+        this.ticketUrl = this._sanitizer.bypassSecurityTrustResourceUrl(this._blobUrl);
+    }
+
+    private _revokeBlobUrl(): void {
+        if (this._blobUrl) {
+            URL.revokeObjectURL(this._blobUrl);
+            this._blobUrl = null;
+        }
     }
 }

@@ -5,6 +5,7 @@ import { AcademicLevel } from 'app/core/types/academic-level';
 import { Group } from 'app/core/types/group';
 import { SchoolarYear } from 'app/core/types/schoolar-year';
 import { CatalogService } from 'app/shared/catalog/catalog.service';
+import { ScholarYearService } from 'app/core/scholar-year/scholar-year.service';
 import { ToastrService } from 'ngx-toastr';
 import { combineLatest, Subject, takeUntil } from 'rxjs';
 import { StudentService } from '../student/student.service';
@@ -22,6 +23,7 @@ export class PaymentComponent {
     private _destroy$ = new Subject<void>();
     constructor(
         private _catalogService: CatalogService,
+        private _scholarYearService: ScholarYearService,
         private _studentService: StudentService,
         private _paymentService: PaymentService,
         private _toastrService: ToastrService,
@@ -45,6 +47,12 @@ export class PaymentComponent {
         this.getSchoolarYears();
         this.getAcademicLevels();
 
+        // Pre-seleccionar ciclo activo
+        const active = this._scholarYearService.activeYear;
+        if (active?.id) {
+            this.scholarYear.setValue(active.id);
+        }
+
         combineLatest([
             this.scholarYear.valueChanges,
             this.academicLevel.valueChanges,
@@ -65,12 +73,19 @@ export class PaymentComponent {
     }
 
     currentGroup() {
-        return this.groups.find((g) => g.id == this.group.value).label;
+        return this.groups.find((g) => g.id == this.group.value)?.label ?? '';
     }
 
     getSchoolarYears() {
         this._catalogService.getSchoolarYears().subscribe({
-            next: ({ data }) => { this.scholarYears = data; },
+            next: ({ data }) => {
+                this.scholarYears = data;
+                // Si aún no hay valor seleccionado, usar el activo
+                if (!this.scholarYear.value) {
+                    const active = this._scholarYearService.activeYear;
+                    if (active?.id) this.scholarYear.setValue(active.id);
+                }
+            },
         });
     }
 
@@ -112,6 +127,7 @@ export class PaymentComponent {
                     },
                 });
         } else {
+            this.isLoading = false;
             this._toastrService.error('Llena el formulario correctamente');
         }
     }
@@ -199,8 +215,12 @@ export class PaymentComponent {
     }
 
     openAccountStatement(studentId: number) {
-        this.accountStatementStudentId = studentId;
-        this.accountStatementYearId = this.scholarYear.value;
+        this.accountStatementStudentId = null;
+        this.accountStatementYearId = null;
+        setTimeout(() => {
+            this.accountStatementStudentId = studentId;
+            this.accountStatementYearId = this.scholarYear.value;
+        });
     }
 
     getPendingPaymentReport() {

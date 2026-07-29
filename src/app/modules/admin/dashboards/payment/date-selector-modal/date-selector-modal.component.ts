@@ -33,6 +33,7 @@ export class DateSelectorModalComponent implements OnInit, OnDestroy {
     }
 
     printReport(){
+        this.isOpenModal = false;
         this._paymentService.openCheckoutCloseModal(this.selectedDate.value);
     }
 

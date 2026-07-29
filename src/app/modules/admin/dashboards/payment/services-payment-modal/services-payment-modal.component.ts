@@ -89,7 +89,7 @@ export class ServicesPaymentModalComponent implements OnInit, OnDestroy {
         this.currentPaymentMethod.reset();
         this.selectedPayConcepts = [];
         this.folioTicket = undefined;
-        this._paymentService.closePaymentModal();
+        this._paymentService.closeServicesModal();
     }
 
     public savePayment() {

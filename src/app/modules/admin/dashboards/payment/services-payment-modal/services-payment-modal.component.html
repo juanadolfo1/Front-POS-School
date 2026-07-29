@@ -83,7 +83,7 @@
                     class="fuse-mat-button-rounded w-50 mt-1"
                     mat-flat-button
                     [color]="'primary'"
-                    [disabled]="!currentPayConcepts.value.length"
+                    [disabled]="!currentPayConcepts.value?.length"
                     (click)="savePayment()"
                 >
                     <mat-icon

@@ -23,7 +23,8 @@ export class TicketModalComponent implements OnInit, OnDestroy {
             next: value => {
                 if (value?.length) {
                     this.folio = value;
-                    this.ticketUrl = this._sanitizer.bypassSecurityTrustResourceUrl(environment.apiUrl + '/documents/get-ticket/' + this.folio);
+                    const token = localStorage.getItem('accessToken') ?? '';
+                    this.ticketUrl = this._sanitizer.bypassSecurityTrustResourceUrl(environment.apiUrl + '/documents/get-ticket/' + this.folio + '?token=' + token);
                     this.title = 'Ticket: ' + this.folio;
                 }
             },
@@ -31,7 +32,8 @@ export class TicketModalComponent implements OnInit, OnDestroy {
         this._paymentService.currentCheckoutClose.pipe(takeUntil(this._destroy$)).subscribe({
             next: value => {
                 if (value?.length) {
-                    this.ticketUrl = this._sanitizer.bypassSecurityTrustResourceUrl(environment.apiUrl + '/documents/close-ticket/' + value);
+                    const token = localStorage.getItem('accessToken') ?? '';
+                    this.ticketUrl = this._sanitizer.bypassSecurityTrustResourceUrl(environment.apiUrl + '/documents/close-ticket/' + value + '?token=' + token);
                     this.title = 'Cierre de caja de ' + value.replace(/(\d{4})-(\d{2})-(\d{2})/, '$3/$2/$1');
                 }
             }

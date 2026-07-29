@@ -21,6 +21,12 @@ export class CatalogService {
         );
     }
 
+    public getActiveScholarYear(): Observable<ApiResponse<SchoolarYear>> {
+        return this._httpClient.get<ApiResponse<SchoolarYear>>(
+            `${this.API_URL}/scholar-years/active`
+        );
+    }
+
     public getAcademicLevels(): Observable<ApiResponse<AcademicLevel[]>> {
         return this._httpClient.get<ApiResponse<AcademicLevel[]>>(
             `${this.API_URL}/academic-levels`

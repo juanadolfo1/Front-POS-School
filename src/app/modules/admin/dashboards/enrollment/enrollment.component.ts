@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { CatalogService } from 'app/shared/catalog/catalog.service';
+import { ScholarYearService } from 'app/core/scholar-year/scholar-year.service';
 import { StudentService } from '../student/student.service';
 import { SchoolarYear } from 'app/core/types/schoolar-year';
 import { AcademicLevel } from 'app/core/types/academic-level';
@@ -63,12 +64,22 @@ export class EnrollmentComponent implements OnInit {
     constructor(
         private _enrollmentService: EnrollmentService,
         private _catalogService: CatalogService,
+        private _scholarYearService: ScholarYearService,
         private _studentService: StudentService,
         private _toastr: ToastrService
     ) {}
 
     ngOnInit(): void {
-        this._catalogService.getSchoolarYears().subscribe({ next: ({ data }) => (this.scholarYears = data) });
+        this._catalogService.getSchoolarYears().subscribe({
+            next: ({ data }) => {
+                this.scholarYears = data;
+                // Pre-seleccionar ciclo activo como origen
+                const active = this._scholarYearService.activeYear;
+                if (active?.id) {
+                    this.fromYear.setValue(active.id);
+                }
+            },
+        });
         this._catalogService.getAcademicLevels().subscribe({ next: ({ data }) => (this.academicLevels = data) });
 
         this._searchSubject.pipe(

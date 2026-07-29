@@ -8,13 +8,16 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatRippleModule } from '@angular/material/core';
 import { TableModule } from 'primeng/table';
+import { DialogModule } from 'primeng/dialog';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { SpinnerModule } from 'app/layout/common/spinner/spinner.module';
 import { PermissionsModule } from 'app/core/permissions/permissions.module';
 import { TutorsComponent } from './tutors.component';
+import { TutorModalComponent } from './tutor-modal/tutor-modal.component';
 import { tutorsRoutes } from './tutors.routing';
 
 @NgModule({
-    declarations: [TutorsComponent],
+    declarations: [TutorsComponent, TutorModalComponent],
     imports: [
         CommonModule,
         RouterModule.forChild(tutorsRoutes),
@@ -25,6 +28,8 @@ import { tutorsRoutes } from './tutors.routing';
         MatFormFieldModule,
         MatRippleModule,
         TableModule,
+        DialogModule,
+        NgSelectModule,
         SpinnerModule,
         PermissionsModule,
     ],

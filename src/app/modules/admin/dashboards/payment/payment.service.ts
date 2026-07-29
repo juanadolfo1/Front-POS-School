@@ -20,11 +20,11 @@ export class PaymentService {
     private _isOpenServicesPaymentsModal = new BehaviorSubject<boolean>(false);
     private _isOpenTicketModal = new BehaviorSubject<boolean>(false);
     private _isOpenDateSelectorModal = new BehaviorSubject<boolean>(false);
-    private _paymentList = new BehaviorSubject<Payment[]>(null);
+    private _paymentList = new BehaviorSubject<Payment[]>([]);
     private _currentPayment = new BehaviorSubject<Payment>(null);
     private _isUpToDate = new BehaviorSubject<boolean>(null);
     private _studentId = new BehaviorSubject<number>(null);
-    private _paymentMethods = new BehaviorSubject<PaymentMethod[]>(null);
+    private _paymentMethods = new BehaviorSubject<PaymentMethod[]>([]);
     private _currentStudent = new BehaviorSubject<Student>(null);
     private _currentScholarShip = new BehaviorSubject<Scholarship>(null);
     private _currentScholarYear = new BehaviorSubject<number>(null);
@@ -196,10 +196,17 @@ export class PaymentService {
         this._isOpenPaymentModal.next(false);
         this._isOpenQrModal.next(false);
         this._isOpenTicketModal.next(false);
-        this._paymentList.next(null);
+        this._paymentList.next([]);
         this._isUpToDate.next(null);
         this._studentId.next(null);
-        this._paymentMethods.next(null)
+        this._paymentMethods.next([]);
+    }
+
+    public closeServicesModal() {
+        this._isOpenServicesPaymentsModal.next(false);
+        this._paymentList.next([]);
+        this._studentId.next(null);
+        this._paymentMethods.next([]);
     }
 
     public closeQrModal() {

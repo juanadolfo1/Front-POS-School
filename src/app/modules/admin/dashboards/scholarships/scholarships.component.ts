@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { CatalogService } from 'app/shared/catalog/catalog.service';
+import { ScholarYearService } from 'app/core/scholar-year/scholar-year.service';
 import { SchoolarYear } from 'app/core/types/schoolar-year';
 import { Scholarship } from 'app/core/types/scholarship';
 import { ScholarshipsService } from './scholarships.service';
@@ -33,16 +34,25 @@ export class ScholarshipsComponent implements OnInit {
     constructor(
         private _scholarshipsService: ScholarshipsService,
         private _catalogService: CatalogService,
+        private _scholarYearService: ScholarYearService,
         private _studentService: StudentService,
         private _toastr: ToastrService
     ) {}
 
     ngOnInit(): void {
         this._catalogService.getSchoolarYears().subscribe({
-            next: ({ data }) => (this.scholarYears = data),
+            next: ({ data }) => {
+                this.scholarYears = data;
+                // Pre-seleccionar ciclo activo en filtro y formulario
+                const active = this._scholarYearService.activeYear;
+                if (active?.id) {
+                    this.filterYear.setValue(active.id);
+                    this.form.patchValue({ scholar_year_id: active.id });
+                    this.loadScholarships();
+                }
+            },
         });
         this.loadStudents();
-        this.loadScholarships();
     }
 
     loadStudents(): void {

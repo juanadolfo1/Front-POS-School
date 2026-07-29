@@ -1,0 +1,81 @@
+<p-dialog
+    [header]="title"
+    [(visible)]="isOpen"
+    [modal]="true"
+    [style]="{ width: '50vw' }"
+    [breakpoints]="{ '700px': '90vw' }"
+    (onHide)="onHide()"
+    [draggable]="false"
+>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+        <div class="col-span-2 flex flex-col w-full">
+            <mat-form-field>
+                <mat-label>Nombre</mat-label>
+                <input matInput [formControl]="name" placeholder="Nombre" />
+                <mat-error *ngIf="name.hasError('required')">Campo requerido</mat-error>
+            </mat-form-field>
+        </div>
+        <div class="flex flex-col w-full">
+            <mat-form-field>
+                <mat-label>Primer apellido</mat-label>
+                <input matInput [formControl]="firstLastname" placeholder="Primer apellido" />
+                <mat-error *ngIf="firstLastname.hasError('required')">Campo requerido</mat-error>
+            </mat-form-field>
+        </div>
+        <div class="flex flex-col w-full">
+            <mat-form-field>
+                <mat-label>Segundo apellido</mat-label>
+                <input matInput [formControl]="secondLastname" placeholder="Segundo apellido" />
+            </mat-form-field>
+        </div>
+        <div class="flex flex-col w-full">
+            <mat-form-field>
+                <mat-label>Correo electrónico</mat-label>
+                <input matInput [formControl]="email" placeholder="Correo electrónico" />
+            </mat-form-field>
+        </div>
+        <div class="flex flex-col w-full">
+            <mat-form-field>
+                <mat-label>Relación</mat-label>
+                <input matInput [formControl]="relation" placeholder="Ej. Padre, Tutor legal" />
+                <mat-error *ngIf="relation.hasError('required')">Campo requerido</mat-error>
+            </mat-form-field>
+        </div>
+        <div class="flex flex-col w-full">
+            <label class="mb-1 text-sm">Tipo de tutor</label>
+            <ng-select
+                [items]="tutorTypeOptions"
+                bindLabel="label"
+                bindValue="value"
+                [formControl]="tutorType"
+                placeholder="Selecciona tipo"
+                [clearable]="false"
+            ></ng-select>
+            <small class="text-red-500 mt-1" *ngIf="tutorType.invalid && tutorType.touched">Campo requerido</small>
+        </div>
+        <div class="flex flex-col w-full">
+            <label class="mb-1 text-sm">Alumno</label>
+            <ng-select
+                [items]="students"
+                bindValue="id"
+                [formControl]="studentId"
+                placeholder="Selecciona alumno"
+                [clearable]="false"
+            >
+                <ng-template ng-label-tmp let-item="item">
+                    {{ item.name }} {{ item.first_lastname }}
+                </ng-template>
+                <ng-template ng-option-tmp let-item="item">
+                    {{ item.name }} {{ item.first_lastname }} {{ item.second_lastname }}
+                </ng-template>
+            </ng-select>
+            <small class="text-red-500 mt-1" *ngIf="studentId.invalid && studentId.touched">Campo requerido</small>
+        </div>
+        <div class="col-span-2 flex justify-center mt-4">
+            <button class="fuse-mat-button-rounded w-40" mat-flat-button color="primary" (click)="save()">
+                <mat-icon class="icon-size-5" svgIcon="heroicons_solid:save"></mat-icon>
+                <span class="ml-2">Guardar</span>
+            </button>
+        </div>
+    </div>
+</p-dialog>

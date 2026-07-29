@@ -13,16 +13,20 @@ import { AuthUtils } from 'app/core/auth/auth.utils';
 import { SecurityService } from 'app/core/auth/security.service';
 import { ToastrService } from 'ngx-toastr';
 import { tap } from 'rxjs/operators';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
     private _isRefreshing = false;
     private _refreshToken$ = new BehaviorSubject<string | null>(null);
 
+    private _redirecting = false;
+
     constructor(
         private _authService: AuthService,
         private _securityService: SecurityService,
-        private _toastr: ToastrService
+        private _toastr: ToastrService,
+        private _router: Router
     ) {}
 
     intercept(
@@ -96,19 +100,23 @@ export class AuthInterceptor implements HttpInterceptor {
     }
 
     private _handle401(error: HttpErrorResponse): void {
-        const message = error.error?.message || '';
+        if (this._redirecting) return;
+        this._redirecting = true;
 
+        const message = error.error?.message || '';
         if (message.includes('revoked') || message.includes('Revoked')) {
             this._toastr.info('Tu sesión fue cerrada');
         }
 
-        // Clear everything and redirect
         localStorage.removeItem('accessToken');
         localStorage.removeItem('user');
         localStorage.removeItem('user_modules');
         localStorage.removeItem('_sec_hash');
         localStorage.removeItem('_permissions_hash');
-        location.href = '/sign-in';
+
+        this._router.navigate(['/sign-in']).then(() => {
+            this._redirecting = false;
+        });
     }
 
     private _handle429(error: HttpErrorResponse): void {

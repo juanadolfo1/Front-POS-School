@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'environments/environment';
 
@@ -41,6 +41,7 @@ export class AccountStatementModalComponent implements OnInit, OnChanges {
     @Input() studentId: number | null = null;
     @Input() scholarYearId: number | null = null;
 
+    @Output() closed = new EventEmitter<void>();
     isOpen = false;
     statement: AccountStatement | null = null;
     isLoading = false;
@@ -68,6 +69,7 @@ export class AccountStatementModalComponent implements OnInit, OnChanges {
         this.isOpen = false;
         this.statement = null;
         this.expandedRows.clear();
+        this.closed.emit();
     }
 
     toggleRow(conceptId: number): void {

@@ -181,4 +181,5 @@
 <account-statement-modal
     [studentId]="accountStatementStudentId"
     [scholarYearId]="accountStatementYearId"
+    (closed)="accountStatementStudentId = null; accountStatementYearId = null"
 ></account-statement-modal>

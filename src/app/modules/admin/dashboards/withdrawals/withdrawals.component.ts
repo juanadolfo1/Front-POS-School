@@ -3,6 +3,7 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ToastrService } from 'ngx-toastr';
 import { CatalogService } from 'app/shared/catalog/catalog.service';
+import { ScholarYearService } from 'app/core/scholar-year/scholar-year.service';
 import { StudentService } from '../student/student.service';
 import { SchoolarYear } from 'app/core/types/schoolar-year';
 import { Student } from 'app/core/types/student.class';
@@ -39,13 +40,23 @@ export class WithdrawalsComponent implements OnInit {
     constructor(
         private _withdrawalsService: WithdrawalsService,
         private _catalogService: CatalogService,
+        private _scholarYearService: ScholarYearService,
         private _studentService: StudentService,
         private _toastr: ToastrService
     ) {}
 
     ngOnInit(): void {
         this._catalogService.getSchoolarYears().subscribe({
-            next: ({ data }) => (this.scholarYears = data),
+            next: ({ data }) => {
+                this.scholarYears = data;
+                // Pre-seleccionar ciclo activo en filtro y formulario
+                const active = this._scholarYearService.activeYear;
+                if (active?.id) {
+                    this.filterYear.setValue(active.id);
+                    this.form.patchValue({ scholar_year_id: active.id });
+                    this.loadWithdrawals();
+                }
+            },
         });
 
         this._searchSubject.pipe(
